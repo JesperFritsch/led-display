@@ -1,0 +1,1 @@
+SOCKET_FILE = '/tmp/display_socket.sock'
