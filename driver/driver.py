@@ -216,7 +216,7 @@ class ImageHandler:
             self.nr_slides += 1
         return os.path.join(self.image_dir, img_name)
 
-    async def get_image_obj(self, image_path):
+    def get_image_obj(self, image_path):
         image = Image.open(image_path)
         image.thumbnail((self.width, self.height), Image.ANTIALIAS)
         return image.convert('RGB')
@@ -227,7 +227,7 @@ class ImageHandler:
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 pool,
-                await self.get_image_obj(img_path)
+                self.get_image_obj(img_path)
             )
         return result
 
