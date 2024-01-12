@@ -10,10 +10,10 @@ import {
     watch } from 'vue';
 
 const screenManager = new ScreenManager();
-const commHandler = new CommHandler({wsUrl: "ws://172.24.54.145:8080/ws"});
+const commHandler = new CommHandler({wsUrl: "ws://172.17.244.123:8080/ws"});
 
 const screenParams = reactive({
-    screenOn: true,
+    displayOn: true,
 })
 
 const customCheckbox = defineComponent({
@@ -26,7 +26,7 @@ const customCheckbox = defineComponent({
         const checked = ref(true);
         function onChange(){
             checked.value = !checked.value;
-            screenManager.screenOn(checked.value);
+            screenManager.displayOn(checked.value);
         }
         watch(() => screenParams[props.param], (newVal, oldVal) => {
             checked.value = newVal;

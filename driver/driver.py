@@ -15,13 +15,13 @@ from concurrent.futures import ProcessPoolExecutor
 # from PIL import Image
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from config import common_config
+from config import common_config as c_cfg
+from config import driver_config as d_cfg
 
-cred = credentials.Certificate("/home/pi/led-matrix-tests/pixelart-dcaff-firebase-adminsdk-84hbl-285571f603.json")
+# cred = credentials.Certificate("/home/pi/led-matrix-tests/pixelart-dcaff-firebase-adminsdk-84hbl-285571f603.json")
+cred = credentials.Certificate(os.path.join(os.path.dirname(os.path.dirname(__file__)),"pixelart-dcaff-firebase-adminsdk-84hbl-285571f603.json"))
 
 DEFAULT_STORE_LOCATION = os.path.join(os.getcwd(), 'downloaded_images.data')
-DISPLAY_TIME_MS = 200
-
 
 app_config = {
     'databaseURL': 'https://pixelart-dcaff-default-rtdb.firebaseio.com',
@@ -29,6 +29,46 @@ app_config = {
 }
 
 app = firebase_admin.initialize_app(cred, app_config)
+
+
+class DotDict(dict):
+    def __getattr__(self, attr):
+        try:
+            return self[attr]
+        except KeyError:
+            raise AttributeError()
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
+
+    def __delattr__(self, attr):
+        try:
+            del self[attr]
+        except KeyError:
+            raise AttributeError
+
+    def read(self, other_dict):
+        for k, v in other_dict.items():
+            self[k] = v
+
+
+class MsgHandler:
+    def __init__(self) -> None:
+        self.handlers = DotDict()
+
+    def set_handler(self, message_key, func):
+        self.handlers[message_key] = func
+
+    async def handle_msg(self, msg):
+        tasks = []
+        for key, value in msg.items():
+            print(key)
+            if key in msgs.keys():
+                tasks.append(asyncio.create_task(self.handlers[key](value)))
+            else:
+                print('Invalid message')
+        await asyncio.gather(*tasks)
+
 
 class StoreFileHander:
     def __init__(self, filepath) -> None:
@@ -51,12 +91,16 @@ class SocketHandler:
 
     async def run_loop(self):
         reader, writer = await asyncio.open_unix_connection(self.sock_file)
+        print(f"Connected to socket: {self.sock_file}")
         try:
             while True:
                 data = await reader.readline()
                 if data:
-                    cmds = json.loads(data)
-                    print(json.dumps(cmds, indent='  '))
+                    try:
+                        msg = json.loads(data)
+                        await msg_handler.handle_msg(msg)
+                    except Exception as e:
+                        print(e)
                 else:
                     print('Connection closed')
                     break
@@ -67,24 +111,55 @@ class SocketHandler:
             writer.close()
             await writer.wait_closed()
 
+
 class DisplayHandler:
-    def __init__(self) -> None:
-        self.sleep_dur_ms = 100
-        self.display_dur_ms = DISPLAY_TIME_MS
+    def __init__(self, brightness, display_dur_ms) -> None:
+        self.sleep_dur_ms = 10
+        self.brightness = brightness
+        self.display_dur_ms = display_dur_ms
         self.current_image = None
         self.next_image = None
         self.switch_time = 0
+        self.matrix = None
+        self.display_is_on = True
+
+    def init_matrix(self):
+        if self.matrix is None:
+            options = RGBMatrixOptions()
+            options.rows = 64
+            options.cols = 64
+            options.brightness = self.brightness
+            options.gpio_slowdown = 0
+            options.chain_length = 1
+            options.parallel = 1
+            options.hardware_mapping = 'regular'
+            self.matrix = RGBMatrix(options = options)
 
     async def display_next_image(self):
-        matrix.Clear()
-        matrix.SetImage(self.next_image)
+        self.matrix.Clear()
+        self.matrix.SetImage(self.next_image)
         self.switch_time = 0
+
+    async def display_on(self, value):
+        if value is False:
+            self.matrix.Clear()
+            self.display_is_on = False
+            self.switch_time = 0
+        else:
+            await self.display_next_image()
+
+    async def set_brightness(self, value):
+        self.matrix.brightness = value
+
+    async def set_display_dur(self, value):
+        self.display_dur_ms = value
 
     async def run_loop(self):
         try:
             self.next_image = image_handler.get_next_img()
             while True:
-                if (time.time() / 1000) - self.switch_time  >= self.display_dur_ms:
+                if (time.time() * 1000) - self.switch_time  >= self.display_dur_ms and self.display_is_on:
+                    self.switch_time = time.time() * 1000
                     await self.display_next_image()
                     self.next_image = await image_handler.get_next_img()
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
@@ -116,7 +191,7 @@ class ImageHandler:
 
     async def scan_dir(self):
         while True:
-            asyncio.sleep(1 / self.scan_frequency)
+            await asyncio.sleep(1 / self.scan_frequency)
             new_image_paths = list(filter(lambda x: x not in self.images, os.listdir(self.image_dir)))
             self.image_queue.extend(new_image_paths)
             self.images.extend(new_image_paths)
@@ -157,56 +232,63 @@ class ImageHandler:
         return result
 
 
-def get_matrix():
-    options = RGBMatrixOptions()
-    options.rows = 64
-    options.cols = 64
-    options.brightness = 40
-    options.gpio_slowdown = 0
-    options.chain_length = 1
-    options.parallel = 1
-    options.hardware_mapping = 'regular'  # If you have an Adafruit HAT: 'adafruit-hat'
-    return RGBMatrix(options = options)
-
 def get_unfetched_images(available_images, image_handler):
-    local_images = image_handler.store.get_entries()
+    local_images = store.get_entries()
     missing_images = [img for img in available_images if img not in local_images]
     for img in missing_images:
         img_local_name = image_handler.download_image(img)
         image_handler.add_image_to_queue(img_local_name)
         image_handler.add_image(img_local_name)
 
-
 async def main():
     socket_loop_task = asyncio.create_task(socket_handler.run_loop())
     display_loop_task = asyncio.create_task(display_handler.run_loop())
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
+    handleNewImage_task = asyncio.create_task(handleNewImage())
     await asyncio.gather(
         socket_loop_task,
         display_loop_task,
-        scan_dir_task
-        )
+        scan_dir_task,
+        handleNewImage_task
+    )
 
-async def handleNewImage(event):
-    if isinstance(event.data, str):
-        img_path = event.data
+async def handleNewImage():
+    while True:
+        img_path = await new_image_queue.get()
         img_local_name = await asyncio.to_thread(image_handler.download_image(img_path))
         image_handler.add_image_to_queue(img_local_name)
         image_handler.add_image(img_local_name)
+        new_image_queue.task_done()
+
+def newImageEvent(event):
+    if isinstance(event.data, str):
+        img_path = event.data
+        asyncio.run_coroutine_threadsafe(new_image_queue.put(img_path))
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image_dir", help="Path to a directory of images", required=True)
-    args = ap.parse_args(sys.argv[:1])
-    matrix = get_matrix()
-    image_handler = ImageHandler(args.image_dir, matrix.width, matrix.height)
-    display_handler = DisplayHandler()
-    socket_handler = SocketHandler(common_config.SOCKET_FILE)
+    args = ap.parse_args(sys.argv[1:])
+    msg_handler = MsgHandler()
+    display_handler = DisplayHandler(
+        brightness=d_cfg.BRIGHTNESS,
+        display_dur_ms=d_cfg.DISPLAY_TIME_MS
+    )
+    display_handler.init_matrix()
+    image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
+    # image_handler = ImageHandler(args.image_dir, 64, 64)
+    socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
+    msgs = DotDict()
+    msgs.read(d_cfg.MSGS)
+
+    msg_handler.set_handler(msgs.brightness, display_handler.set_brightness)
+    msg_handler.set_handler(msgs.display_on, display_handler.display_on)
+
     ref = db.reference('/led_display/')
     slideshow_ref = ref.child("img_slideshow")
     available_images = list(slideshow_ref.get().values())
     get_unfetched_images(available_images, image_handler)
-    listener = slideshow_ref.listen(handleNewImage)
-
+    listener = slideshow_ref.listen(newImageEvent)
+    new_image_queue = asyncio.Queue()
     asyncio.run(main())

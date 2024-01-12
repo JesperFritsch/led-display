@@ -5,9 +5,9 @@ export class ScreenManager{
     constructor(){
         ;
     }
-    screenOn(value){
+    displayOn(value){
         const data = {
-            screenOn: value
+            display_on: value
         }
         commHandler.sendData(data);
     }

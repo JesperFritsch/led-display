@@ -81,11 +81,11 @@ async def get():
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    print(f"Connected client to websocket: {websocket.client}")
     active_sockets.add(websocket)
     try:
         while True:
             payload = await websocket.receive_json()
-            print(payload)
             await socket_server.send_message(payload)
             for connection in active_sockets:
                 await connection.send_json(payload)
