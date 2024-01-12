@@ -11,8 +11,8 @@ from firebase_admin import db
 from firebase_admin import storage
 from concurrent.futures import ProcessPoolExecutor
 
-# from rgbmatrix import RGBMatrix, RGBMatrixOptions
-# from PIL import Image
+from rgbmatrix import RGBMatrix, RGBMatrixOptions
+from PIL import Image
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import common_config as c_cfg
@@ -156,7 +156,7 @@ class DisplayHandler:
 
     async def run_loop(self):
         try:
-            self.next_image = image_handler.get_next_img()
+            self.next_image = await image_handler.get_next_img()
             while True:
                 if (time.time() * 1000) - self.switch_time  >= self.display_dur_ms and self.display_is_on:
                     self.switch_time = time.time() * 1000
