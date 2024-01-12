@@ -136,8 +136,9 @@ class DisplayHandler:
             self.matrix = RGBMatrix(options = options)
 
     async def display_next_image(self):
+        next_image = await image_handler.get_next_img()
         self.matrix.Clear()
-        self.matrix.SetImage(self.next_image)
+        self.matrix.SetImage(next_image)
         self.switch_time = 0
 
     async def display_on(self, value):
@@ -156,12 +157,10 @@ class DisplayHandler:
 
     async def run_loop(self):
         try:
-            self.next_image = await image_handler.get_next_img()
             while True:
                 if (time.time() * 1000) - self.switch_time  >= self.display_dur_ms and self.display_is_on:
                     self.switch_time = time.time() * 1000
                     await self.display_next_image()
-                    self.next_image = await image_handler.get_next_img()
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
