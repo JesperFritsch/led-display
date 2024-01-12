@@ -227,7 +227,8 @@ class ImageHandler:
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 pool,
-                self.get_image_obj(img_path)
+                self.get_image_obj,
+                img_path
             )
         return result
 
