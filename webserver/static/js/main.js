@@ -10,7 +10,7 @@ import {
     watch } from 'vue';
 
 const screenManager = new ScreenManager();
-const commHandler = new CommHandler({wsUrl: "ws://172.17.244.123:8080/ws"});
+const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"});
 
 const screenParams = reactive({
     displayOn: true,
