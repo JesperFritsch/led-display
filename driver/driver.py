@@ -241,10 +241,17 @@ def get_unfetched_images(available_images, image_handler):
         image_handler.add_image(img_local_name)
 
 async def main():
+    global listener
+    new_image_queue = asyncio.Queue()
+    ref = db.reference('/led_display/')
+    slideshow_ref = ref.child("img_slideshow")
+    available_images = list(slideshow_ref.get().values())
+    get_unfetched_images(available_images, image_handler)
     socket_loop_task = asyncio.create_task(socket_handler.run_loop())
     display_loop_task = asyncio.create_task(display_handler.run_loop())
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
-    handleNewImage_task = asyncio.create_task(handleNewImage())
+    handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
+    listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
     await asyncio.gather(
         socket_loop_task,
         display_loop_task,
@@ -252,7 +259,7 @@ async def main():
         handleNewImage_task
     )
 
-async def handleNewImage():
+async def handleNewImage(new_image_queue):
     while True:
         img_path = await new_image_queue.get()
         img_local_name = await asyncio.to_thread(image_handler.download_image(img_path))
@@ -260,7 +267,7 @@ async def handleNewImage():
         image_handler.add_image(img_local_name)
         new_image_queue.task_done()
 
-def newImageEvent(event):
+def newImageEvent(new_image_queue, event):
     if isinstance(event.data, str):
         img_path = event.data
         loop = asyncio.get_event_loop()
@@ -286,10 +293,6 @@ if __name__ == '__main__':
     msg_handler.set_handler(msgs.brightness, display_handler.set_brightness)
     msg_handler.set_handler(msgs.display_on, display_handler.display_on)
 
-    ref = db.reference('/led_display/')
-    slideshow_ref = ref.child("img_slideshow")
-    available_images = list(slideshow_ref.get().values())
-    get_unfetched_images(available_images, image_handler)
-    listener = slideshow_ref.listen(newImageEvent)
-    new_image_queue = asyncio.Queue()
+    listener = None
+
     asyncio.run(main())
