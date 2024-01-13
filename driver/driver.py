@@ -271,7 +271,7 @@ async def handleNewImage(new_image_queue):
 def newImageEvent(loop, new_image_queue, event):
     if isinstance(event.data, str):
         img_path = event.data
-        asyncio.run_coroutine_threadsafe(new_image_queue.put(img_path), loop)
+        new_image_queue.put(img_path)
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
