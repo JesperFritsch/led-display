@@ -16,16 +16,16 @@
 
     <script type="text/x-template" id="app-template">
         <div>
-            <custom-checkbox label='Screen on' param='screen_on' />
+            <custom-checkbox label='Display on' param='display_on' />
         </div>
     </script>
 
     <script type="text/x-template" id="checkbox-template">
         <div>
-            <label for="screen-on"> {{ label }}
+            <label for="display-on"> {{ label }}
                 <input
                     type="checkbox"
-                    id="screen-on"
+                    id="display-on"
                     @change.prevent="onChange"
                     :checked="checked">
             </label>
