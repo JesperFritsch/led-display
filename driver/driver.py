@@ -263,7 +263,7 @@ async def main():
 async def handleNewImage(new_image_queue):
     while True:
         img_path = await new_image_queue.get()
-        img_local_name = await asyncio.to_thread(image_handler.download_image(img_path))
+        img_local_name = await asyncio.to_thread(image_handler.download_image, img_path)
         image_handler.add_image_to_queue(img_local_name)
         image_handler.add_image(img_local_name)
         new_image_queue.task_done()
