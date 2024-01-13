@@ -285,6 +285,7 @@ if __name__ == '__main__':
         display_dur_ms=d_cfg.DISPLAY_TIME_MS
     )
     display_handler.init_matrix()
+    print(display_handler)
     image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
     # image_handler = ImageHandler(args.image_dir, 64, 64)
     socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
