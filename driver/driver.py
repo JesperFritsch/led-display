@@ -244,6 +244,7 @@ def get_unfetched_images(available_images, image_handler):
 async def main():
     global listener
     new_image_queue = asyncio.Queue()
+    loop = asyncio.get_running_loop()
     ref = db.reference('/led_display/')
     slideshow_ref = ref.child("img_slideshow")
     available_images = list(slideshow_ref.get().values())
@@ -252,7 +253,7 @@ async def main():
     display_loop_task = asyncio.create_task(display_handler.run_loop())
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
     handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
-    listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
+    listener = slideshow_ref.listen(lambda event: newImageEvent(loop, new_image_queue, event))
     await asyncio.gather(
         socket_loop_task,
         display_loop_task,
@@ -270,9 +271,8 @@ async def handleNewImage(new_image_queue):
         await display_handler.display_next_image()
         new_image_queue.task_done()
 
-def newImageEvent(new_image_queue, event):
+def newImageEvent(loop, new_image_queue, event):
     if isinstance(event.data, str):
-        loop = asyncio.get_running_loop()
         img_path = event.data
         asyncio.run_coroutine_threadsafe(new_image_queue.put(img_path), loop)
 
