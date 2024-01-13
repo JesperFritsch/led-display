@@ -13,7 +13,7 @@ const screenManager = new ScreenManager();
 const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"});
 
 const screenParams = reactive({
-    displayOn: true,
+    display_on: true,
 })
 
 const customCheckbox = defineComponent({

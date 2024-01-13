@@ -88,7 +88,6 @@ async def websocket_endpoint(websocket: WebSocket):
             payload = await websocket.receive_json()
             await socket_server.send_message(payload)
             for connection in active_sockets:
-                print(payload, connection.client)
                 await connection.send_json(payload)
     except WebSocketDisconnect:
         active_sockets.remove(websocket)
