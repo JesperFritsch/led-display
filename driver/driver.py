@@ -253,7 +253,7 @@ async def main():
     handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
     # listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
     image = await image_handler.get_next_img()
-    print(image, **image.size)
+    print(image)
     display_handler.matrix.SetImage(image, *image.size, unsafe=False)
     # await asyncio.gather(
     #     socket_loop_task,
