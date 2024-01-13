@@ -273,6 +273,8 @@ def newImageEvent(loop, new_image_queue, event):
         img_path = event.data
         print(img_path)
         asyncio.run_coroutine_threadsafe(new_image_queue.put(img_path), loop)
+    else:
+        print(f'wierd format: {event.data}')
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
