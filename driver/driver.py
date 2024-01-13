@@ -262,19 +262,16 @@ async def handleNewImage(new_image_queue):
     while True:
         img_path = await new_image_queue.get()
         img_local_name = await asyncio.to_thread(image_handler.download_image, img_path)
-        print(img_local_name)
         image_handler.add_image_to_queue(img_local_name)
         image_handler.add_image(img_local_name)
+        display_handler.next_image = await image_handler.get_next_img()
         await display_handler.display_next_image()
         new_image_queue.task_done()
 
 def newImageEvent(loop, new_image_queue, event):
     if isinstance(event.data, str):
         img_path = event.data
-        print(img_path)
         asyncio.run_coroutine_threadsafe(new_image_queue.put(img_path), loop)
-    else:
-        print(f'wierd format: {event.data}')
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
