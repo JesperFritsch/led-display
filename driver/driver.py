@@ -266,6 +266,7 @@ async def handleNewImage(new_image_queue):
         img_local_name = await asyncio.to_thread(image_handler.download_image, img_path)
         image_handler.add_image_to_queue(img_local_name)
         image_handler.add_image(img_local_name)
+        await display_handler.display_next_image()
         new_image_queue.task_done()
 
 def newImageEvent(loop, new_image_queue, event):
