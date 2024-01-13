@@ -139,7 +139,7 @@ class DisplayHandler:
         next_image = await image_handler.get_next_img()
         self.matrix.Clear()
         self.matrix.SetImage(next_image, unsafe=False)
-        self.switch_time = 0
+        self.switch_time = time.time() * 1000
 
     async def display_on(self, value):
         if value is False:
