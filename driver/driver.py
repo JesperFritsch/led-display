@@ -289,10 +289,12 @@ if __name__ == '__main__':
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
     msgs = DotDict()
     msgs.read(d_cfg.MSGS)
+    image = image_handler.get_next_img()
+    display_handler.matrix.SetImage(image)
 
     msg_handler.set_handler(msgs.brightness, display_handler.set_brightness)
     msg_handler.set_handler(msgs.display_on, display_handler.display_on)
 
     listener = None
 
-    asyncio.run(main())
+    # asyncio.run(main())
