@@ -96,7 +96,7 @@ class SocketHandler:
                 print(f"Connected to socket: {self.sock_file}")
             except ConnectionRefusedError as e:
                 print(f"Socket not available: {e}")
-                await asyncio.sleep(2)
+                await asyncio.sleep(10)
             except Exception as e:
                 print(f"Error connecting: {e}")
                 await asyncio.sleep(10)
