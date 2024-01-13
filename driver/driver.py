@@ -90,27 +90,31 @@ class SocketHandler:
 
     async def run_loop(self):
         while True:
-            print(f"Trying to connect to socket: '{self.sock_file}'")
-            reader, writer = await asyncio.open_unix_connection(self.sock_file)
-            print(f"Connected to socket: {self.sock_file}")
             try:
-                while True:
-                    data = await reader.readline()
-                    if data:
-                        try:
-                            msg = json.loads(data)
-                            await msg_handler.handle_msg(msg)
-                        except Exception as e:
-                            print(e)
-                    else:
-                        print('Connection closed')
-                        break
+                print(f"Trying to connect to socket: '{self.sock_file}'")
+                reader, writer = await asyncio.open_unix_connection(self.sock_file)
+                print(f"Connected to socket: {self.sock_file}")
+            except Exception as e:
+                print(f"Error connecting: {e}")
+            else:
+                try:
+                    while True:
+                        data = await reader.readline()
+                        if data:
+                            try:
+                                msg = json.loads(data)
+                                await msg_handler.handle_msg(msg)
+                            except Exception as e:
+                                print(e)
+                        else:
+                            print('Connection closed')
+                            break
 
-            except asyncio.CancelledError:
-                pass
-            finally:
-                writer.close()
-                await writer.wait_closed()
+                except asyncio.CancelledError:
+                    pass
+                finally:
+                    writer.close()
+                    await writer.wait_closed()
 
 
 class DisplayHandler:
