@@ -140,6 +140,7 @@ class DisplayHandler:
         self.matrix.Clear()
         self.matrix.SetImage(self.next_image, unsafe=False)
         self.switch_time = time.time() * 1000
+        self.next_image = await image_handler.get_next_img()
 
     async def display_on(self, value):
         if value is False:
@@ -161,7 +162,6 @@ class DisplayHandler:
             while True:
                 if (time.time() * 1000) - self.switch_time  >= self.display_dur_ms and self.display_is_on:
                     await self.display_next_image()
-                    self.next_image = await image_handler.get_next_img()
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
@@ -208,21 +208,18 @@ class ImageHandler:
         store.set_entry(storage_path)
         return img_local_name
 
-    def get_next_image_path(self):
-        if self.image_queue:
-            img_name = self.image_queue.pop(0)
-        else:
-            img_name = self.images[self.nr_slides % len(self.images)]
-            self.nr_slides += 1
-        return os.path.join(self.image_dir, img_name)
-
     def get_image_obj(self, image_path):
         image = Image.open(image_path)
         image.thumbnail((self.width, self.height), Image.ANTIALIAS)
         return image.convert('RGB')
 
     async def get_next_img(self):
-        img_path = self.get_next_image_path()
+        try:
+            img_name = self.image_queue.pop(0)
+        except IndexError:
+            img_name = self.images[self.nr_slides % len(self.images)]
+            self.nr_slides += 1
+        img_path = os.path.join(self.image_dir, img_name)
         with ProcessPoolExecutor() as pool:
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
@@ -265,9 +262,9 @@ async def handleNewImage(new_image_queue):
     while True:
         img_path = await new_image_queue.get()
         img_local_name = await asyncio.to_thread(image_handler.download_image, img_path)
+        print(img_local_name)
         image_handler.add_image_to_queue(img_local_name)
         image_handler.add_image(img_local_name)
-        display_handler.next_image = await image_handler.get_next_img()
         await display_handler.display_next_image()
         new_image_queue.task_done()
 
@@ -287,7 +284,6 @@ if __name__ == '__main__':
     )
     display_handler.init_matrix()
     image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
-    # image_handler = ImageHandler(args.image_dir, 64, 64)
     socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
     msgs = DotDict()
