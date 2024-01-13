@@ -156,6 +156,7 @@ class DisplayHandler:
 
     async def run_loop(self):
         try:
+            self.next_image = await image_handler.get_next_img()
             while True:
                 if (time.time() * 1000) - self.switch_time  >= self.display_dur_ms and self.display_is_on:
                     await self.display_next_image()
