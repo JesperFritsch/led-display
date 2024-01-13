@@ -94,8 +94,12 @@ class SocketHandler:
                 print(f"Trying to connect to socket: '{self.sock_file}'")
                 reader, writer = await asyncio.open_unix_connection(self.sock_file)
                 print(f"Connected to socket: {self.sock_file}")
+            except ConnectionRefusedError as e:
+                print(f"Socket not available: {e}")
+                asyncio.sleep(2)
             except Exception as e:
                 print(f"Error connecting: {e}")
+                asyncio.sleep(10)
             else:
                 try:
                     while True:
