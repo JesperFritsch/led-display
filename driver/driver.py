@@ -251,13 +251,15 @@ async def main():
     display_loop_task = asyncio.create_task(display_handler.run_loop())
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
     handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
-    listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
-    await asyncio.gather(
-        socket_loop_task,
-        display_loop_task,
-        scan_dir_task,
-        handleNewImage_task
-    )
+    # listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
+    image = await image_handler.get_next_img()
+    display_handler.matrix.SetImage(image)
+    # await asyncio.gather(
+    #     socket_loop_task,
+    #     display_loop_task,
+    #     scan_dir_task,
+    #     handleNewImage_task
+    # )
 
 async def handleNewImage(new_image_queue):
     while True:
@@ -289,12 +291,10 @@ if __name__ == '__main__':
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
     msgs = DotDict()
     msgs.read(d_cfg.MSGS)
-    image = image_handler.get_next_img()
-    display_handler.matrix.SetImage(image)
 
     msg_handler.set_handler(msgs.brightness, display_handler.set_brightness)
     msg_handler.set_handler(msgs.display_on, display_handler.display_on)
 
     listener = None
 
-    # asyncio.run(main())
+    asyncio.run(main())
