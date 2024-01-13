@@ -138,7 +138,7 @@ class DisplayHandler:
     async def display_next_image(self):
         next_image = await image_handler.get_next_img()
         self.matrix.Clear()
-        self.matrix.SetImage(next_image)
+        self.matrix.SetImage(next_image, unsafe=False)
         self.switch_time = 0
 
     async def display_on(self, value):
@@ -251,16 +251,13 @@ async def main():
     display_loop_task = asyncio.create_task(display_handler.run_loop())
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
     handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
-    # listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
-    image = await image_handler.get_next_img()
-    print(image)
-    display_handler.matrix.SetImage(image, unsafe=False)
-    # await asyncio.gather(
-    #     socket_loop_task,
-    #     display_loop_task,
-    #     scan_dir_task,
-    #     handleNewImage_task
-    # )
+    listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
+    await asyncio.gather(
+        socket_loop_task,
+        display_loop_task,
+        scan_dir_task,
+        handleNewImage_task
+    )
 
 async def handleNewImage(new_image_queue):
     while True:
