@@ -254,7 +254,7 @@ async def main():
     # listener = slideshow_ref.listen(lambda event: newImageEvent(new_image_queue, event))
     image = await image_handler.get_next_img()
     print(image)
-    display_handler.matrix.SetImage(image, *image.size, unsafe=False)
+    display_handler.matrix.SetImage(image, unsafe=False)
     # await asyncio.gather(
     #     socket_loop_task,
     #     display_loop_task,
