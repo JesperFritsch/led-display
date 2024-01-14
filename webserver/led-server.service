@@ -1,7 +1,7 @@
 [Unit]
 Description=webserver for the led matrix
 After=network.target
-PartOf=display-project.service
+PartOf=led-display.service
 StartLimitIntervalSec=1
 
 [Service]
@@ -9,7 +9,7 @@ Type=simple
 Restart=always
 RestartSec=1
 WorkingDirectory=/home/pi/led-display/webserver
-ExecStart=startScript.sh
+ExecStart=./startScript.sh
 
 [Install]
 WantedBy=multi-user.target
