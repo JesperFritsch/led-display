@@ -1,0 +1,11 @@
+[Unit]
+Description=LED display project service
+Wants=led-driver.service led-server.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
