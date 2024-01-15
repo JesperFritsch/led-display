@@ -18,8 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import common_config as c_cfg
 from config import driver_config as d_cfg
 
-# cred = credentials.Certificate("/home/pi/led-matrix-tests/pixelart-dcaff-firebase-adminsdk-84hbl-285571f603.json")
-cred = credentials.Certificate(os.path.join(os.path.dirname(os.path.dirname(__file__)),"pixelart-dcaff-firebase-adminsdk-84hbl-285571f603.json"))
+cred = credentials.Certificate(os.path.join(os.path.dirname(os.path.dirname(__file__)),"pixelart-dcaff-eefc1ed77b07.json"))
 
 DEFAULT_STORE_LOCATION = os.path.join(os.getcwd(), 'downloaded_images.data')
 
