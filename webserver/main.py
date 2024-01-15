@@ -65,7 +65,7 @@ socket_server_task = None
 @app.on_event('startup')
 async def start_app():
     global socket_server_task
-    socket_server_task = await asyncio.create_task(socket_server.start())
+    socket_server_task = asyncio.create_task(socket_server.start())
 
 @app.on_event('shutdown')
 async def shutdown_app():
