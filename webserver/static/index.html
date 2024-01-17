@@ -17,6 +17,21 @@
     <script type="text/x-template" id="app-template">
         <div>
             <custom-checkbox label='Display on' param='display_on' />
+            <input-field label='Display duration sec' param='display_dur' />
+            <input-field label='Brightness' param='brightness' />
+        </div>
+    </script>
+
+    <script type="text/x-template" id="input-field">
+        <div>
+            <label for="input-{{ label }}"> {{ label }}
+                <input
+                @change.prevent=onChange
+                type="text"
+                class="input-field"
+                id="input-{{ label }}"
+                v-model='textValue'>
+            </label>
         </div>
     </script>
 

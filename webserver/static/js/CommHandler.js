@@ -22,6 +22,7 @@ export class CommHandler{
         Object.assign(screenParams, JSON.parse(event.data));
     }
     sendData(data){
+        console.log(data)
         this.connection.send(JSON.stringify(data))
     }
 }

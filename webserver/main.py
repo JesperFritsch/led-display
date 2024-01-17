@@ -91,3 +91,5 @@ async def websocket_endpoint(websocket: WebSocket):
                 await connection.send_json(payload)
     except WebSocketDisconnect:
         active_sockets.remove(websocket)
+    except:
+        pass

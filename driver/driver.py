@@ -297,6 +297,7 @@ if __name__ == '__main__':
     msgs.read(d_cfg.MSGS)
 
     msg_handler.set_handler(msgs.brightness, display_handler.set_brightness)
+    msg_handler.set_handler(msgs.display_dur, display_handler.set_display_dur)
     msg_handler.set_handler(msgs.display_on, display_handler.display_on)
 
     listener = None
