@@ -31,7 +31,9 @@ class SocketServer:
         except asyncio.CancelledError:
             pass
         finally:
-            self.connections.remove((reader, writer))
+            self.connections.discard((reader, writer))
+            writer.close()
+            await writer.wait_closed()
 
     async def clientWriter(self, data):
         for reader, writer in self.connections:
@@ -51,6 +53,17 @@ class SocketServer:
         self.server = await asyncio.start_unix_server(self.handleClient, self.path)
         async with self.server:
             await self.server.serve_forever()
+
+    async def stop(self):
+        if self.server:
+            self.server.close()
+            await self.server.wait_closed()
+        for reader, writer in self.connections:
+            writer.close()
+            await writer.wait_closed()
+        self.connections.clear()
+        if os.path.exists(self.path):
+            os.remove(self.path)
 
 
 app = FastAPI()
@@ -72,6 +85,7 @@ async def shutdown_app():
     global socket_server_task
     socket_server_task.cancel()
     await socket_server_task
+    socket_server_task = asyncio.create_task(socket_server.stop())
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
