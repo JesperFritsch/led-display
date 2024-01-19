@@ -10,7 +10,6 @@ import {
     watch } from 'vue';
 
 const screenManager = new ScreenManager();
-// const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
 const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
@@ -32,6 +31,9 @@ const inputField = defineComponent({
             if(!isNaN(value)){
                 screenManager[props.param](parseInt(textValue.value));
             }
+            watch(() => screenParams[props.param], (newVal, oldVal) => {
+                textValue.value = newVal;
+            })
         }
         return {
             onChange,
