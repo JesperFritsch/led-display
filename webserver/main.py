@@ -71,7 +71,8 @@ class SocketServer:
         if self.server:
             self.server.close()
             await self.server.wait_closed()
-        for reader, writer in self.connections:
+        conn_copy = set(self.connections)
+        for reader, writer in conn_copy:
             writer.close()
             await writer.wait_closed()
         self.connections.clear()
