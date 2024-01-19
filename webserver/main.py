@@ -96,9 +96,14 @@ async def start_app():
 @app.on_event('shutdown')
 async def shutdown_app():
     global socket_server_task
-    socket_server_task.cancel()
-    await socket_server_task
-    socket_server_task = asyncio.create_task(socket_server.stop())
+    if socket_server_task:
+        socket_server_task.cancel()
+        try:
+            await socket_server_task
+        except asyncio.CancelledError:
+            print("Socket server task cancelled.")
+        finally:
+            await socket_server.stop()
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
