@@ -15,17 +15,17 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from config import common_config
 
-class NoCacheStaticFiles(StaticFiles):
-    async def get_response(self, path: str, scope: Scope) -> Response:
-        response: Response = await super().get_response(path, scope)
-        no_cache_headers = {
-            "Cache-Control": "no-store, no-cache, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0"
-        }
-        print(response.headers)
-        response.headers.update(no_cache_headers)
-        return response
+# class NoCacheStaticFiles(StaticFiles):
+#     async def get_response(self, path: str, scope: Scope) -> Response:
+#         response: Response = await super().get_response(path, scope)
+#         no_cache_headers = {
+#             "Cache-Control": "no-store, no-cache, must-revalidate",
+#             "Pragma": "no-cache",
+#             "Expires": "0"
+#         }
+#         print(response.headers)
+#         response.headers.update(no_cache_headers)
+#         return response
 
 class SocketServer:
     def __init__(self, path) -> None:
@@ -83,7 +83,7 @@ class SocketServer:
 
 app = FastAPI()
 
-app.mount("/static", NoCacheStaticFiles(directory='static'), name='static')
+app.mount("/static", StaticFiles(directory='static'), name='static')
 active_sockets = set()
 
 socket_server = SocketServer(common_config.SOCKET_FILE)
