@@ -7,11 +7,24 @@ from fastapi import FastAPI
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import Response
 from fastapi.responses import HTMLResponse
+from starlette.types import Scope
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from config import common_config
+
+class NoCacheStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response: Response = await super().get_response(path, scope)
+        no_cache_headers = {
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+        response.headers.update(no_cache_headers)
+        return response
 
 class SocketServer:
     def __init__(self, path) -> None:
@@ -68,7 +81,7 @@ class SocketServer:
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory='static'), name='static')
+app.mount("/static", NoCacheStaticFiles(directory='static'), name='static')
 active_sockets = set()
 
 socket_server = SocketServer(common_config.SOCKET_FILE)
@@ -90,7 +103,12 @@ async def shutdown_app():
 @app.get("/", response_class=HTMLResponse)
 async def get():
     with open('static/index.html') as f:
-        return f.read()
+        content = f.read()
+    headers = {
+        'Expires': 0,
+        'Pragma': 'no-cache'
+    }
+    return HTMLResponse(content=content, headers=headers)
 
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
