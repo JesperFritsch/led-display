@@ -14,7 +14,7 @@ const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
     display_on: true,
-    brighness: 0,
+    brightness: 0,
     display_dur: 20
 })
 

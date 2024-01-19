@@ -23,7 +23,6 @@ class NoCacheStaticFiles(StaticFiles):
             "Pragma": "no-cache",
             "Expires": "0"
         }
-        print(response.headers)
         response.headers.update(no_cache_headers)
         return response
 
