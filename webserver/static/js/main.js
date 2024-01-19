@@ -32,6 +32,7 @@ const inputField = defineComponent({
                 screenManager[props.param](parseInt(textValue.value));
             }
             watch(() => screenParams[props.param], (newVal, oldVal) => {
+                console.log('asa')
                 textValue.value = newVal;
             })
         }
