@@ -10,7 +10,8 @@ import {
     watch } from 'vue';
 
 const screenManager = new ScreenManager();
-const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
+const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
+// const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
     display_on: true,
@@ -31,11 +32,11 @@ const inputField = defineComponent({
             if(!isNaN(value)){
                 screenManager[props.param](parseInt(textValue.value));
             }
-            watch(() => screenParams[props.param], (newVal, oldVal) => {
-                console.log('asa')
-                textValue.value = newVal;
-            })
         }
+        watch(() => screenParams[props.param], (newVal, oldVal) => {
+            console.log('asa')
+            textValue.value = newVal;
+        });
         return {
             onChange,
             textValue
