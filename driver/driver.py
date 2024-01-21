@@ -121,7 +121,7 @@ class SocketHandler:
                                 msg = json.loads(data)
                                 print(msg)
                                 response = await msg_handler.handle_msg(msg)
-                                print(response)
+                                print(response, 'piss')
                                 if response is not None:
                                     data_json = json.dumps(response) + '\n'
                                     data = data_json.encode('utf-8')
