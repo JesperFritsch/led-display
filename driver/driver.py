@@ -128,7 +128,7 @@ class SocketHandler:
                                     writer.write(data)
                                     await writer.drain()
                             except Exception as e:
-                                print(e)
+                                print('Some shit happened: 'e)
                         else:
                             print('Connection closed')
                             break
