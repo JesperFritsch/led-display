@@ -22,11 +22,9 @@ export class CommHandler{
         }
     }
     receiveData(event){
-        console.log(JSON.parse(event.data))
         Object.assign(screenParams, JSON.parse(event.data));
     }
     sendData(data){
-        console.log(data);
         this.connection.send(JSON.stringify(data))
     }
 }
