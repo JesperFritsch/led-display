@@ -130,7 +130,7 @@ async def websocket_endpoint(websocket: WebSocket):
             for connection in active_sockets:
                 #only echo the 'set' part of the message
                 print(payload)
-                await connection.send_json(payload)
+                await connection.send_json(payload.get('set'))
     except WebSocketDisconnect:
         active_sockets.remove(websocket)
     except:
