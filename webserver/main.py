@@ -39,7 +39,7 @@ class SocketServer:
                 if data:
                     print(json.loads(data))
                     for connection in active_sockets:
-                        connection.send_json(data)
+                        await connection.send_json(data)
                 else:
                     print('Connection closed: ', writer.get_extra_info("peername"))
                     break
