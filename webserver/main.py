@@ -37,9 +37,9 @@ class SocketServer:
             while True:
                 data = await reader.readline()
                 if data:
-                    print(json.loads(data))
+                    json_data = json.loads(data)
                     for connection in active_sockets:
-                        await connection.send_json(data)
+                        await connection.send_json(json_data)
                 else:
                     print('Connection closed: ', writer.get_extra_info("peername"))
                     break
