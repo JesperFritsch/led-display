@@ -54,8 +54,7 @@ class DotDict(dict):
 
 
 class MsgHandler:
-    def __init__(self, messages_map) -> None:
-        self.message_map = messages_map
+    def __init__(self) -> None:
         self.set_handlers = DotDict()
         self.get_handlers = DotDict()
 
