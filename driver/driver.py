@@ -74,7 +74,7 @@ class MsgHandler:
                         print('Invalid message')
                 await asyncio.gather(*tasks)
             elif meth_type == 'get':
-                if 'all' in msgs.items():
+                if 'all' in msgs.keys():
                     message = {key: getter() for key, getter in self.get_handlers.items()}
                 else:
                     message = {key: self.get_handlers[getter_key]() for key, getter_key in msgs.items()}
