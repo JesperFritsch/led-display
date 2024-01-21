@@ -5,18 +5,21 @@ export class ScreenManager{
     constructor(){
         ;
     }
-    sendMessage(name, value){
+    set(name, value){
         const data = {};
         data[name] = value;
-        commHandler.sendData(data);
+        const payload = {
+            set: data
+        }
+        commHandler.sendData(payload);
     }
-    display_on(value){
-        this.sendMessage('display_on', value);
-    }
-    display_dur(value){
-        this.sendMessage('display_dur', value);
-    }
-    brightness(value){
-        this.sendMessage('brightness', value);
+    get(name, value){
+        //Value here is not used yet, but could be useful?
+        const data = {};
+        data[name] = value;
+        const payload = {
+            get: data
+        }
+        commHandler.sendData(payload);
     }
 }

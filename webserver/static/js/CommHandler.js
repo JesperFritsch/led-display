@@ -17,11 +17,15 @@ export class CommHandler{
     connect(){
         this.connection = new WebSocket(this.wsUrl);
         this.connection.onmessage = this.receiveData.bind(this);
+        this.connection.onopen = () => {
+            this.sendData({get: {all: null}});
+        }
     }
     receiveData(event){
         Object.assign(screenParams, JSON.parse(event.data));
     }
     sendData(data){
+        console.log(data);
         this.connection.send(JSON.stringify(data))
     }
 }

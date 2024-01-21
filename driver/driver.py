@@ -48,24 +48,38 @@ class DotDict(dict):
 
     def read(self, other_dict):
         for k, v in other_dict.items():
+            if isinstance(v, dict):
+                v = DotDict(v)
             self[k] = v
 
 
 class MsgHandler:
-    def __init__(self) -> None:
-        self.handlers = DotDict()
+    def __init__(self, messages_map) -> None:
+        self.message_map = messages_map
+        self.set_handlers = DotDict()
+        self.get_handlers = DotDict()
 
-    def set_handler(self, message_key, func):
-        self.handlers[message_key] = func
+    def add_handlers(self, message_key, setter=None, getter=None):
+        self.set_handlers[message_key] = setter
+        self.get_handlers[message_key] = getter
 
-    async def handle_msg(self, msg):
+    async def handle_msg(self, payload):
         tasks = []
-        for key, value in msg.items():
-            if key in msgs.keys():
-                tasks.append(asyncio.create_task(self.handlers[key](value)))
-            else:
-                print('Invalid message')
-        await asyncio.gather(*tasks)
+        message = None
+        for meth_type, msgs in payload.items():
+            if meth_type == 'set':
+                for key, value in msgs.items():
+                    if key in msgs.keys():
+                        tasks.append(asyncio.create_task(self.set_handlers[key](value)))
+                    else:
+                        print('Invalid message')
+                await asyncio.gather(*tasks)
+            elif meth_type == 'get':
+                if 'all' in msgs.items():
+                    message = {key: getter() for key, getter in self.get_handlers.items()}
+                else:
+                    message = {key: self.get_handlers[getter_key]() for key, getter_key in msgs.items()}
+        return message
 
 
 class StoreFileHander:
@@ -106,7 +120,12 @@ class SocketHandler:
                         if data:
                             try:
                                 msg = json.loads(data)
-                                await msg_handler.handle_msg(msg)
+                                response = await msg_handler.handle_msg(msg)
+                                if response is not None:
+                                    data_json = json.dumps(response) + '\n'
+                                    data = data_json.encode('utf-8')
+                                    writer.write(data)
+                                    await writer.drain()
                             except Exception as e:
                                 print(e)
                         else:
@@ -121,10 +140,9 @@ class SocketHandler:
 
 
 class DisplayHandler:
-    def __init__(self, brightness, display_dur_ms) -> None:
+    def __init__(self) -> None:
         self.sleep_dur_ms = 10
-        self.brightness = brightness
-        self.display_dur_ms = display_dur_ms
+        self.display_dur_ms = 60000
         self.current_image = None
         self.next_image = None
         self.switch_time = 0
@@ -136,7 +154,7 @@ class DisplayHandler:
             options = RGBMatrixOptions()
             options.rows = 64
             options.cols = 64
-            options.brightness = self.brightness
+            options.brightness = 40
             options.gpio_slowdown = 0
             options.chain_length = 1
             options.parallel = 1
@@ -162,12 +180,21 @@ class DisplayHandler:
             self.display_is_on = True
             self.switch_time = 0
 
+    def get_display_on(self):
+        return self.display_is_on
+
     async def set_brightness(self, value):
         self.matrix.brightness = value
         await self.refresh()
 
+    def get_brightness(self):
+        return self.matrix.brightness
+
     async def set_display_dur(self, value):
         self.display_dur_ms = value
+
+    def get_display_dur(self):
+        return self.display_dur_ms
 
     async def run_loop(self):
         try:
@@ -291,10 +318,7 @@ if __name__ == '__main__':
     ap.add_argument("-i", "--image_dir", help="Path to a directory of images", required=True)
     args = ap.parse_args(sys.argv[1:])
     msg_handler = MsgHandler()
-    display_handler = DisplayHandler(
-        brightness=d_cfg.BRIGHTNESS,
-        display_dur_ms=d_cfg.DISPLAY_TIME_MS
-    )
+    display_handler = DisplayHandler()
     display_handler.init_matrix()
     image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
     socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
@@ -302,9 +326,9 @@ if __name__ == '__main__':
     msgs = DotDict()
     msgs.read(d_cfg.MSGS)
 
-    msg_handler.set_handler(msgs.brightness, display_handler.set_brightness)
-    msg_handler.set_handler(msgs.display_dur, display_handler.set_display_dur)
-    msg_handler.set_handler(msgs.display_on, display_handler.display_on)
+    msg_handler.add_handlers(msgs.brightness, display_handler.set_brightness, display_handler.get_brightness)
+    msg_handler.add_handlers(msgs.display_dur, display_handler.set_display_dur, display_handler.get_display_dur)
+    msg_handler.add_handlers(msgs.display_on, display_handler.display_on, display_handler.get_display_on)
 
     listener = None
 
