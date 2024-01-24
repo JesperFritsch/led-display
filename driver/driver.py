@@ -118,6 +118,7 @@ class SocketHandler:
                         if data:
                             try:
                                 msg = json.loads(data)
+                                print(msg)
                                 response = await msg_handler.handle_msg(msg)
                                 if response is not None:
                                     data_json = json.dumps(response) + '\n'
