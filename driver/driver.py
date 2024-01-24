@@ -166,11 +166,11 @@ class DisplayHandler:
 
     async def refresh(self):
         self.matrix.Clear()
-        self.set_image(self.current_image)
+        await self.set_image(self.current_image)
 
     async def display_next_image(self):
         self.matrix.Clear()
-        self.set_image(self.next_image)
+        await self.set_image(self.next_image)
         self.current_image = self.next_image
         self.switch_time = time.time() * 1000
         self.next_image = await image_handler.get_next_img()
