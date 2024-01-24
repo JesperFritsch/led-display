@@ -29,7 +29,6 @@ app_config = {
 
 app = firebase_admin.initialize_app(cred, app_config)
 
-
 class DotDict(dict):
     def __getattr__(self, attr):
         try:
@@ -46,7 +45,7 @@ class DotDict(dict):
         except KeyError:
             raise AttributeError
 
-    def read(self, other_dict):
+    def read_dict(self, other_dict):
         for k, v in other_dict.items():
             if isinstance(v, dict):
                 v = DotDict(v)
@@ -160,13 +159,19 @@ class DisplayHandler:
             options.hardware_mapping = 'regular'
             self.matrix = RGBMatrix(options = options)
 
+    async def set_image(self, image):
+        loop = asyncio.get_running_loop()
+        asyncio.run_coroutine_threadsafe(self.matrix.SetImage(image), loop)
+
     async def refresh(self):
         self.matrix.Clear()
-        self.matrix.SetImage(self.current_image, unsafe=False)
+        await self.set_image(self.current_image)
+        # self.matrix.SetImage(self.current_image, unsafe=False)
 
     async def display_next_image(self):
         self.matrix.Clear()
-        self.matrix.SetImage(self.next_image, unsafe=False)
+        await self.set_image(self.next_image)
+        # self.matrix.SetImage(self.next_image, unsafe=False)
         self.current_image = self.next_image
         self.switch_time = time.time() * 1000
         self.next_image = await image_handler.get_next_img()
@@ -204,6 +209,7 @@ class DisplayHandler:
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
+            global listener
             listener.close()
             sys.exit(0)
 
@@ -218,6 +224,9 @@ class ImageHandler:
         self.newImages = []
         self.nr_slides = 0
         self.scan_frequency = 5
+
+    def get_image_dir(self):
+        return self.image_dir
 
     def add_image(self, image_name):
         self.images.append(image_name)
@@ -325,9 +334,10 @@ if __name__ == '__main__':
     msgs = DotDict()
     msgs.read(d_cfg.MSGS)
 
-    msg_handler.add_handlers(msgs.brightness, display_handler.set_brightness, display_handler.get_brightness)
-    msg_handler.add_handlers(msgs.display_dur, display_handler.set_display_dur, display_handler.get_display_dur)
-    msg_handler.add_handlers(msgs.display_on, display_handler.display_on, display_handler.get_display_on)
+    msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
+    msg_handler.add_handlers('display_dur', display_handler.set_display_dur, display_handler.get_display_dur)
+    msg_handler.add_handlers('display_on', display_handler.display_on, display_handler.get_display_on)
+    msg_handler.add_handlers('image_dir', getter=image_handler.get_image_dir)
 
     listener = None
 
