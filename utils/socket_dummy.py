@@ -121,7 +121,7 @@ class SocketClient:
 if __name__ == '__main__':
     socket_client = SocketClient(c_cfg.SOCKET_FILE)
     socket_server = SocketServer(c_cfg.SOCKET_FILE)
-    input_task = asyncio.create_task(socket_server())
+    input_task = asyncio.create_task(socket_server.handle_input())
     client_task = asyncio.create_task(socket_client.start())
     server_task = asyncio.create_task(socket_server.start())
     # asyncio.run(socket_client.start())
