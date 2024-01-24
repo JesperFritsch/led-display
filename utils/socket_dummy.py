@@ -55,8 +55,7 @@ class SocketServer:
             try:
                 mode, msg, value = command.split(' ')
             except:
-                mode = None
-                msg = None
+                mode, msg = command.split(' ')
                 value = None
             payload = {mode: {msg: value}}
             await self.send_message(payload)
