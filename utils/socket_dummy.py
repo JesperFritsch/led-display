@@ -50,7 +50,7 @@ class SocketServer:
     async def handle_input(self):
         loop = asyncio.get_running_loop()
         while True:
-            msg_value = await loop.run_in_executor(None, input, 'message: ')
+            msg_value = await loop.run_in_executor(None, input)
             try:
                 msg, value = msg_value.split(' ')
             except:
@@ -95,10 +95,10 @@ class SocketClient:
                 print(f"Connected to socket: {self.sock_file}")
             except ConnectionRefusedError as e:
                 print(f"Socket not available: {e}")
-                await asyncio.sleep(20)
+                await asyncio.sleep(2)
             except Exception as e:
                 print(f"Error connecting: {e}")
-                await asyncio.sleep(10)
+                await asyncio.sleep(2)
             else:
                 try:
                     while True:
