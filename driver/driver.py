@@ -67,9 +67,9 @@ class MsgHandler:
         for meth_type, msgs in payload.items():
             if meth_type == 'set':
                 for key, value in msgs.items():
-                    if key in msgs.keys():
+                    try:
                         tasks.append(asyncio.create_task(self.set_handlers[key](value)))
-                    else:
+                    except KeyError:
                         print('Invalid message')
                 await asyncio.gather(*tasks)
             elif meth_type == 'get':
@@ -331,8 +331,6 @@ if __name__ == '__main__':
     image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
     socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
-    msgs = DotDict()
-    msgs.read(d_cfg.MSGS)
 
     msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
     msg_handler.add_handlers('display_dur', display_handler.set_display_dur, display_handler.get_display_dur)
