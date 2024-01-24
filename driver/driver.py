@@ -172,6 +172,10 @@ class DisplayHandler:
         self.next_image = await image_handler.get_next_img()
 
     async def display_on(self, value):
+        try:
+            value = bool(value)
+        except Exception as e:
+            print(e)
         if value is False:
             self.matrix.Clear()
             self.display_is_on = False
@@ -183,14 +187,20 @@ class DisplayHandler:
         return self.display_is_on
 
     async def set_brightness(self, value):
-        self.matrix.brightness = value
+        try:
+            self.matrix.brightness = int(value)
+        except Exception as e:
+            print(e)
         await self.refresh()
 
     def get_brightness(self):
         return self.matrix.brightness
 
     async def set_display_dur(self, value):
-        self.display_dur_ms = value
+        try:
+            self.display_dur_ms = int(value)
+        except Exception as e:
+            print(e)
 
     def get_display_dur(self):
         return self.display_dur_ms
