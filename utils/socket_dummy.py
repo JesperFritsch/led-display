@@ -125,7 +125,7 @@ async def main():
         # input_task = asyncio.create_task(socket_server.handle_input())
         client_task = asyncio.create_task(socket_client.start())
         server_task = asyncio.create_task(socket_server.start())
-        await asyncio.gather([ client_task, server_task])
+        await asyncio.gather([client_task, server_task])
     finally:
         await socket_server.stop()
 
