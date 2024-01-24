@@ -49,7 +49,7 @@ class SocketServer:
 
     async def handle_input(self):
         while True:
-            msg_value = await input('message: ')
+            msg_value = input('message: ')
             try:
                 msg, value = msg_value.split(' ')
             except:
