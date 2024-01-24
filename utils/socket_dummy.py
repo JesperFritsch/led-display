@@ -54,6 +54,7 @@ class SocketServer:
             try:
                 mode, msg, value = command.split(' ')
             except:
+                mode = None
                 msg = None
                 value = None
             payload = {mode: {msg: value}}
