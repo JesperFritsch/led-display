@@ -26,6 +26,7 @@ class SocketServer:
                 data = await reader.readline()
                 if data:
                     json_data = json.loads(data)
+                    print(json_data)
                     for connection in active_sockets:
                         await connection.send_json(json_data)
                 else:
