@@ -76,7 +76,13 @@ class MsgHandler:
                 if 'all' in msgs.keys():
                     message = {key: getter() for key, getter in self.get_handlers.items()}
                 else:
-                    message = {getter_key: self.get_handlers[getter_key](value) for getter_key, value in msgs.items()}
+                    message = {}
+                    for get_key, val in msgs.items():
+                        try:
+                            get_value = self.get_handlers[get_key](val)
+                        except TypeError:
+                            get_value = self.get_handlers[get_key]()
+                    message[get_key] = get_value
         return message
 
 
