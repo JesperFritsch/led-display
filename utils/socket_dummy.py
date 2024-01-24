@@ -123,10 +123,10 @@ async def main():
     socket_client = SocketClient(c_cfg.SOCKET_FILE)
     socket_server = SocketServer(c_cfg.SOCKET_FILE)
     try:
-        # input_task = asyncio.create_task(socket_server.handle_input())
+        input_task = asyncio.create_task(socket_server.handle_input())
         client_task = asyncio.create_task(socket_client.start())
         server_task = asyncio.create_task(socket_server.start())
-        await asyncio.gather([client_task, server_task])
+        await asyncio.gather([input_task, client_task, server_task])
     finally:
         await socket_server.stop()
 
