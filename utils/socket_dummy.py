@@ -50,13 +50,13 @@ class SocketServer:
     async def handle_input(self):
         loop = asyncio.get_running_loop()
         while True:
-            msg_value = await loop.run_in_executor(None, input)
+            command = await loop.run_in_executor(None, input)
             try:
-                msg, value = msg_value.split(' ')
+                mode, msg, value = command.split(' ')
             except:
-                msg = msg_value
+                msg = None
                 value = None
-            payload = {msg: value}
+            payload = {mode: {msg: value}}
             await self.send_message(payload)
 
 
