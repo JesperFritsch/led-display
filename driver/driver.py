@@ -160,13 +160,17 @@ class DisplayHandler:
             options.hardware_mapping = 'regular'
             self.matrix = RGBMatrix(options = options)
 
+    async def set_image(self, image):
+        #need to run this in a different thread so that unsafe mode can be used.
+        await asyncio.to_thread(self.matrix.SetImage(image))
+
     async def refresh(self):
         self.matrix.Clear()
-        self.matrix.SetImage(self.current_image, unsafe=False)
+        self.set_image(self.current_image)
 
     async def display_next_image(self):
         self.matrix.Clear()
-        self.matrix.SetImage(self.next_image, unsafe=False)
+        self.set_image(self.next_image)
         self.current_image = self.next_image
         self.switch_time = time.time() * 1000
         self.next_image = await image_handler.get_next_img()
