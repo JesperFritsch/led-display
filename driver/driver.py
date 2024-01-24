@@ -166,7 +166,7 @@ class DisplayHandler:
 
     async def display_next_image(self):
         self.matrix.Clear()
-        self.matrix.SetImage(self.current_image, unsafe=False)
+        self.matrix.SetImage(self.next_image, unsafe=False)
         self.current_image = self.next_image
         self.switch_time = time.time() * 1000
         self.next_image = await image_handler.get_next_img()
