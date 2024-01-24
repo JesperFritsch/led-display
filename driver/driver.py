@@ -162,7 +162,14 @@ class DisplayHandler:
 
     async def set_image(self, image):
         #need to run this in a different thread so that unsafe mode can be used.
-        await asyncio.to_thread(self.matrix.SetImage, image)
+        with ProcessPoolExecutor() as pool:
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(
+                pool,
+                self.matrix.SetImage,
+                image
+            )
+        # await asyncio.to_thread(self.matrix.SetImage, image)
 
     async def refresh(self):
         self.matrix.Clear()
