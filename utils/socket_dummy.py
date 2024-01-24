@@ -48,13 +48,14 @@ class SocketServer:
         await self.clientListener(reader, writer)
 
     async def handle_input(self):
+        loop = asyncio.get_running_loop()
         while True:
-            msg_value = input('message: ')
+            msg_value = await loop.run_in_executor(None, input, 'message: ')
             try:
                 msg, value = msg_value.split(' ')
             except:
-                print('fucked up')
-                continue
+                msg = msg_value
+                value = None
             payload = {msg: value}
             await self.send_message(payload)
 
