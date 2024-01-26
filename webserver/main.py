@@ -9,6 +9,7 @@ from fastapi import WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import Response
 from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from starlette.types import Scope
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -26,11 +27,13 @@ class NoCacheStaticFiles(StaticFiles):
         response.headers.update(no_cache_headers)
         return response
 
+
 class SocketServer:
     def __init__(self, path) -> None:
         self.path = path
         self.connections = set()
         self.server = None
+        self.open_requests_futures = {}
 
     async def clientListener(self, reader, writer):
         try:
@@ -38,7 +41,10 @@ class SocketServer:
                 data = await reader.readline()
                 if data:
                     json_data = json.loads(data)
-                    for connection in active_sockets:
+                    #if there is a get request sent, then there might be events we are listening to for the response
+                    if self.open_requests_futures.keys():
+                        await self.future_setter(json_data)
+                    for connection in active_websockets:
                         await connection.send_json(json_data)
                 else:
                     print('Connection closed: ', writer.get_extra_info("peername"))
@@ -50,7 +56,15 @@ class SocketServer:
             writer.close()
             await writer.wait_closed()
 
-    async def clientWriter(self, data):
+    async def future_setter(self, msgs_rec: dict):
+        # Set events for recieved messages if there are any
+        print(msgs_rec)
+        for parameter, value in msgs_rec.items():
+            if parameter in self.open_requests_futures.keys():
+                self.open_requests_futures[parameter].set_result(value)
+                del self.open_requests_futures[parameter]
+
+    async def clientWriter(self, data: dict):
         for reader, writer in self.connections:
             writer.write(data)
             await writer.drain()
@@ -59,9 +73,19 @@ class SocketServer:
         self.connections.add((reader, writer))
         await self.clientListener(reader, writer)
 
+    async def get_message_wait(self, parameter: str | int | float, value=None):
+        # Send a message and return a future that will resolve when the first response of this message domes from the socket client
+        if self.connections:
+            msg = {'get': {parameter: value}}
+            future = asyncio.Future()
+            self.open_requests_futures[parameter] = future
+            await self.send_message(msg)
+            return await future
+
     async def send_message(self, payload):
         jsonString = json.dumps(payload) + '\n'
         data = jsonString.encode('utf-8')
+        print(payload)
         await self.clientWriter(data)
 
     async def start(self):
@@ -85,7 +109,7 @@ class SocketServer:
 app = FastAPI()
 
 app.mount("/static", NoCacheStaticFiles(directory='static'), name='static')
-active_sockets = set()
+active_websockets = set()
 
 socket_server = SocketServer(common_config.SOCKET_FILE)
 
@@ -118,19 +142,31 @@ async def get():
     }
     return HTMLResponse(content=content, headers=headers)
 
+@app.get('/images', response_class=HTMLResponse)
+async def get_images():
+    image_dir = await socket_server.get_message_wait('image_dir')
+    print(socket_server.open_requests_futures)
+    headers = {
+        'Expires': '0',
+        'Pragma': 'no-cache'
+    }
+    return HTMLResponse(content=image_dir, headers=headers)
+
+
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print(f"Connected client to websocket: {websocket.client}")
-    active_sockets.add(websocket)
+    active_websockets.add(websocket)
     try:
         while True:
             payload = await websocket.receive_json()
             await socket_server.send_message(payload)
-            for connection in active_sockets:
-                #only echo the 'set' part of the message
+            for connection in active_websockets:
+                #only echo the 'set' part of the message to all of the other clients
                 await connection.send_json(payload.get('set'))
     except WebSocketDisconnect:
-        active_sockets.remove(websocket)
+        active_websockets.remove(websocket)
     except:
         pass
+
