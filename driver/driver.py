@@ -170,7 +170,7 @@ class DisplayHandler:
         self.matrix.Clear()
         self.matrix.SetImage(self.current_image, unsafe=False)
 
-    async def get_image(self):
+    def get_image(self):
         return self.current_image
 
     async def set_image(self, image):
