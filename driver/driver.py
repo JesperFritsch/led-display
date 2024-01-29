@@ -170,9 +170,6 @@ class DisplayHandler:
         self.matrix.Clear()
         self.matrix.SetImage(self.current_image, unsafe=False)
 
-    async def get_image(self):
-        return await self.current_image
-
     async def set_image(self, image):
         self.next_image = image
         await self.display_next_image()
@@ -242,6 +239,7 @@ class ImageHandler:
         self.newImages = []
         self.nr_slides = 0
         self.scan_frequency = 5
+        self.current_img_name = None
 
     def get_image_names(self):
         return self.images
@@ -282,12 +280,7 @@ class ImageHandler:
         image.thumbnail((self.width, self.height), Image.ANTIALIAS)
         return image.convert('RGB')
 
-    async def get_next_img(self):
-        try:
-            img_name = self.image_queue.pop(0)
-        except IndexError:
-            img_name = self.images[self.nr_slides % len(self.images)]
-            self.nr_slides += 1
+    async def proccess_img(self, img_name):
         img_path = os.path.join(self.image_dir, img_name)
         with ProcessPoolExecutor() as pool:
             loop = asyncio.get_running_loop()
@@ -298,6 +291,14 @@ class ImageHandler:
             )
         return result
 
+    async def get_next_img(self):
+        try:
+            img_name = self.image_queue.pop(0)
+        except IndexError:
+            img_name = self.images[self.nr_slides % len(self.images)]
+            self.nr_slides += 1
+        self.current_img_name = img_name
+        return await self.proccess_img(img_name)
 
 def get_unfetched_images(available_images, image_handler):
     local_images = store.get_entries()
@@ -336,6 +337,13 @@ async def handleNewImage(new_image_queue):
         display_handler.next_image = await image_handler.get_next_img()
         await display_handler.display_next_image()
         new_image_queue.task_done()
+
+async def get_image():
+    return image_handler.current_img_name
+
+async def set_image(img_name):
+    img_obj = image_handler.proccess_img(img_name)
+    display_handler.set_image(img_obj)
 
 def newImageEvent(loop, new_image_queue, event):
     if isinstance(event.data, str):
