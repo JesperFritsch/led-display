@@ -15,4 +15,5 @@ body{
 
 #img-container{
     display: grid;
+    image-rendering: pixelated;
 }

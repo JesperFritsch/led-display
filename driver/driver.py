@@ -342,8 +342,8 @@ def get_image():
     return image_handler.current_img_name
 
 async def set_image(img_name):
-    img_obj = image_handler.proccess_img(img_name)
-    display_handler.set_image(img_obj)
+    img_obj = await image_handler.proccess_img(img_name)
+    await display_handler.set_image(img_obj)
 
 def newImageEvent(loop, new_image_queue, event):
     if isinstance(event.data, str):
