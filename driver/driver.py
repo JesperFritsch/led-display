@@ -364,7 +364,7 @@ if __name__ == '__main__':
     msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
     msg_handler.add_handlers('display_dur', display_handler.set_display_dur, display_handler.get_display_dur)
     msg_handler.add_handlers('display_on', display_handler.set_display_on, display_handler.get_display_on)
-    msg_handler.add_handlers('image', display_handler.set_image, display_handler.get_image)
+    msg_handler.add_handlers('image', set_image, get_image)
     msg_handler.add_handlers('images', getter=image_handler.get_image_names)
 
     listener = None
