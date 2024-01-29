@@ -58,31 +58,35 @@ class MsgHandler:
         self.get_handlers = DotDict()
 
     def add_handlers(self, message_key, setter=None, getter=None):
-        self.set_handlers[message_key] = setter
-        self.get_handlers[message_key] = getter
+        if setter is not None: self.set_handlers[message_key] = setter
+        if getter is not None: self.get_handlers[message_key] = getter
 
     async def handle_msg(self, payload):
         tasks = []
         message = None
         for meth_type, msgs in payload.items():
-            if meth_type == 'set':
-                for key, value in msgs.items():
-                    try:
-                        tasks.append(asyncio.create_task(self.set_handlers[key](value)))
-                    except KeyError:
-                        print('Invalid message')
-                await asyncio.gather(*tasks)
-            elif meth_type == 'get':
-                if 'all' in msgs.keys():
-                    message = {key: getter() for key, getter in self.get_handlers.items()}
-                else:
-                    message = {}
-                    for get_key, val in msgs.items():
+            try:
+                if meth_type == 'set':
+                    for key, value in msgs.items():
                         try:
-                            get_value = self.get_handlers[get_key](val)
-                        except TypeError:
-                            get_value = self.get_handlers[get_key]()
-                    message[get_key] = get_value
+                            tasks.append(asyncio.create_task(self.set_handlers[key](value)))
+                        except KeyError:
+                            print('Invalid message')
+                    await asyncio.gather(*tasks)
+                elif meth_type == 'get':
+                    if 'all' in msgs.keys():
+                        message = {key: getter() for key, getter in self.get_handlers.items()}
+                    else:
+                        message = {}
+                        for get_key, val in msgs.items():
+                            try:
+                                get_value = self.get_handlers[get_key](val)
+                            except TypeError:
+                                get_value = self.get_handlers[get_key]()
+                        message[get_key] = get_value
+            except Exception as e:
+                print(f'We fucked something up: {msgs}, {e}')
+
         return message
 
 
@@ -347,11 +351,21 @@ if __name__ == '__main__':
     # msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
     # msg_handler.add_handlers('display_dur', display_handler.set_display_dur, display_handler.get_display_dur)
     # msg_handler.add_handlers('display_on', display_handler.display_on, display_handler.get_display_on)
-    def response_func():
-        return f'some/good/path/{time.time():.2f}'
+    def image_dir_resp():
+        return os.getcwd()
 
-    msg_handler.add_handlers('image_dir', getter=response_func)
+    def image_names():
+        return [x for x in os.listdir() if x.endswith('.png')]
 
+    async def set_image_fake(img_name):
+        print(f'setting image: {img_name}')
+
+    def get_image():
+        return 'some_image'
+
+    msg_handler.add_handlers('image_dir', getter=image_dir_resp)
+    msg_handler.add_handlers('images', getter=image_names)
+    msg_handler.add_handlers('image', getter=get_image, setter=set_image_fake)
     listener = None
 
     asyncio.run(main())

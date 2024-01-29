@@ -58,8 +58,8 @@ class MsgHandler:
         self.get_handlers = DotDict()
 
     def add_handlers(self, message_key, setter=None, getter=None):
-        self.set_handlers[message_key] = setter
-        self.get_handlers[message_key] = getter
+        if setter is not None: self.set_handlers[message_key] = setter
+        if getter is not None: self.get_handlers[message_key] = getter
 
     async def handle_msg(self, payload):
         tasks = []
@@ -170,6 +170,13 @@ class DisplayHandler:
         self.matrix.Clear()
         self.matrix.SetImage(self.current_image, unsafe=False)
 
+    async def get_image(self):
+        return self.current_image
+
+    async def set_image(self, image):
+        self.next_image = image
+        await self.display_next_image()
+
     async def display_next_image(self):
         self.matrix.Clear()
         self.matrix.SetImage(self.next_image, unsafe=False)
@@ -177,7 +184,7 @@ class DisplayHandler:
         self.switch_time = time.time() * 1000
         self.next_image = await image_handler.get_next_img()
 
-    async def display_on(self, value):
+    async def set_display_on(self, value):
         try:
             value = bool(value)
         except Exception as e:
@@ -235,6 +242,9 @@ class ImageHandler:
         self.newImages = []
         self.nr_slides = 0
         self.scan_frequency = 5
+
+    def get_image_names(self):
+        return self.images
 
     def get_image_dir(self):
         return self.image_dir
@@ -345,8 +355,9 @@ if __name__ == '__main__':
 
     msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
     msg_handler.add_handlers('display_dur', display_handler.set_display_dur, display_handler.get_display_dur)
-    msg_handler.add_handlers('display_on', display_handler.display_on, display_handler.get_display_on)
-    msg_handler.add_handlers('image_dir', getter=image_handler.get_image_dir)
+    msg_handler.add_handlers('display_on', display_handler.set_display_on, display_handler.get_display_on)
+    msg_handler.add_handlers('image', display_handler.set_image, display_handler.get_image)
+    msg_handler.add_handlers('images', getter=image_handler.get_image_names)
 
     listener = None
 

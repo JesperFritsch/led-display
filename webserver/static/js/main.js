@@ -17,7 +17,8 @@ const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 const screenParams = reactive({
     display_on: true,
     brightness: 0,
-    display_dur: 20
+    display_dur: 20,
+    images: []
 })
 
 const inputField = defineComponent({
@@ -66,13 +67,38 @@ const customCheckbox = defineComponent({
     }
 })
 
+const imageButton = defineComponent({
+    template: '#image-template',
+    props: {
+        img_name: String
+    },
+    setup(props){
+        const image_path = 'images/' + props.img_name
+        function onClick(){
+            screenManager.set('image', props.img_name);
+        }
+        return {
+            image_path,
+            onClick
+        }
+    }
+})
+
 const app = defineComponent({
     template: '#app-template',
     components: {
         'custom-checkbox': customCheckbox,
-        'input-field': inputField
+        'input-field': inputField,
+        'image-btn': imageButton,
+    },
+    setup(){
+        return {screenParams}
     }
 });
 createApp(app).mount('#app');
 
-export { commHandler, screenParams };
+export {
+    commHandler,
+    screenParams,
+    imageButton
+};

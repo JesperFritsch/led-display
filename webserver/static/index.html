@@ -19,6 +19,9 @@
             <custom-checkbox label='Display on' param='display_on' />
             <input-field label='Display duration sec' param='display_dur' />
             <input-field label='Brightness' param='brightness' />
+            <div id="img-container">
+                <image-btn v-for="img_name of screenParams.images" :img_name="img_name">
+            </div>
         </div>
     </script>
 
@@ -46,5 +49,16 @@
             </label>
         </div>
     </script>
+
+    <script type="text/x-template" id="image-template">
+        <div>
+            <img
+            :src="image_path"
+            class='img-btn'
+            @click.prevent="onClick"
+            alt="">
+        </div>
+    </script>
+
     <script src="/static/js/main.js" type="module"></script>
 </html>

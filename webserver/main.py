@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import Response
 from fastapi.responses import HTMLResponse
 from fastapi.responses import FileResponse
+from fastapi.exceptions import HTTPException
 from starlette.types import Scope
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -58,7 +59,6 @@ class SocketServer:
 
     async def future_setter(self, msgs_rec: dict):
         # Set events for recieved messages if there are any
-        print(msgs_rec)
         for parameter, value in msgs_rec.items():
             if parameter in self.open_requests_futures.keys():
                 self.open_requests_futures[parameter].set_result(value)
@@ -85,7 +85,6 @@ class SocketServer:
     async def send_message(self, payload):
         jsonString = json.dumps(payload) + '\n'
         data = jsonString.encode('utf-8')
-        print(payload)
         await self.clientWriter(data)
 
     async def start(self):
@@ -112,8 +111,9 @@ app.mount("/static", NoCacheStaticFiles(directory='static'), name='static')
 active_websockets = set()
 
 socket_server = SocketServer(common_config.SOCKET_FILE)
-
 socket_server_task = None
+
+driver_image_dir = None
 
 @app.on_event('startup')
 async def start_app():
@@ -142,16 +142,18 @@ async def get():
     }
     return HTMLResponse(content=content, headers=headers)
 
-@app.get('/images', response_class=HTMLResponse)
-async def get_images():
-    image_dir = await socket_server.get_message_wait('image_dir')
-    print(socket_server.open_requests_futures)
-    headers = {
-        'Expires': '0',
-        'Pragma': 'no-cache'
-    }
-    return HTMLResponse(content=image_dir, headers=headers)
+@app.get("/images/{image_path:path}", response_class=FileResponse)
+async def get_images(image_path: str):
+    global driver_image_dir
+    if driver_image_dir is None:
+        driver_image_dir = await socket_server.get_message_wait('image_dir')
 
+    file_path = os.path.join(driver_image_dir, image_path)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Image not found.")
+
+    return FileResponse(file_path)
 
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
