@@ -74,14 +74,14 @@ class MsgHandler:
                 await asyncio.gather(*tasks)
             elif meth_type == 'get':
                 if 'all' in msgs.keys():
-                    message = {key: getter() for key, getter in self.get_handlers.items()}
+                    message = {key: await getter() for key, getter in self.get_handlers.items()}
                 else:
                     message = {}
                     for get_key, val in msgs.items():
                         try:
-                            get_value = self.get_handlers[get_key](val)
+                            get_value = await self.get_handlers[get_key](val)
                         except TypeError:
-                            get_value = self.get_handlers[get_key]()
+                            get_value = await self.get_handlers[get_key]()
                     message[get_key] = get_value
         return message
 
@@ -196,7 +196,7 @@ class DisplayHandler:
             self.display_is_on = True
             self.switch_time = 0
 
-    def get_display_on(self):
+    async def get_display_on(self):
         return self.display_is_on
 
     async def set_brightness(self, value):
@@ -206,7 +206,7 @@ class DisplayHandler:
             print(e)
         await self.refresh()
 
-    def get_brightness(self):
+    async def get_brightness(self):
         return self.matrix.brightness
 
     async def set_display_dur(self, value):
@@ -215,7 +215,7 @@ class DisplayHandler:
         except Exception as e:
             print(e)
 
-    def get_display_dur(self):
+    async def get_display_dur(self):
         return self.display_dur_ms
 
     async def run_loop(self):
