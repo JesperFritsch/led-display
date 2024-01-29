@@ -73,7 +73,7 @@ class SocketServer:
         self.connections.add((reader, writer))
         await self.clientListener(reader, writer)
 
-    async def get_message_wait(self, parameter: str | int | float, value=None):
+    async def get_message_wait(self, parameter, value=None):
         # Send a message and return a future that will resolve when the first response of this message domes from the socket client
         if self.connections:
             msg = {'get': {parameter: value}}
