@@ -74,14 +74,14 @@ class MsgHandler:
                 await asyncio.gather(*tasks)
             elif meth_type == 'get':
                 if 'all' in msgs.keys():
-                    message = {key: await getter() for key, getter in self.get_handlers.items()}
+                    message = {key: getter() for key, getter in self.get_handlers.items()}
                 else:
                     message = {}
                     for get_key, val in msgs.items():
                         try:
-                            get_value = await self.get_handlers[get_key](val)
+                            get_value = self.get_handlers[get_key](val)
                         except TypeError:
-                            get_value = await self.get_handlers[get_key]()
+                            get_value = self.get_handlers[get_key]()
                     message[get_key] = get_value
         return message
 
@@ -193,7 +193,7 @@ class DisplayHandler:
             self.display_is_on = True
             self.switch_time = 0
 
-    async def get_display_on(self):
+    def get_display_on(self):
         return self.display_is_on
 
     async def set_brightness(self, value):
@@ -203,7 +203,7 @@ class DisplayHandler:
             print(e)
         await self.refresh()
 
-    async def get_brightness(self):
+    def get_brightness(self):
         return self.matrix.brightness
 
     async def set_display_dur(self, value):
@@ -212,7 +212,7 @@ class DisplayHandler:
         except Exception as e:
             print(e)
 
-    async def get_display_dur(self):
+    def get_display_dur(self):
         return self.display_dur_ms
 
     async def run_loop(self):
@@ -338,7 +338,7 @@ async def handleNewImage(new_image_queue):
         await display_handler.display_next_image()
         new_image_queue.task_done()
 
-async def get_image():
+def get_image():
     return image_handler.current_img_name
 
 async def set_image(img_name):
