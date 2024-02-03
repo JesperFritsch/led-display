@@ -208,7 +208,7 @@ class DisplayHandler:
 
     async def set_display_dur(self, value):
         try:
-            self.display_dur_ms = int(value)
+            self.display_dur_ms = int(value) * 1000
         except Exception as e:
             print(e)
 
