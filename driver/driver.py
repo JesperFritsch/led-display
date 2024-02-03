@@ -147,7 +147,7 @@ class SocketHandler:
 class DisplayHandler:
     def __init__(self) -> None:
         self.sleep_dur_ms = 10
-        self.display_dur_ms = 60000
+        self.display_dur_sec = 60
         self.current_image = None
         self.next_image = None
         self.switch_time = 0
@@ -208,18 +208,18 @@ class DisplayHandler:
 
     async def set_display_dur(self, value):
         try:
-            self.display_dur_ms = int(value) * 1000
+            self.display_dur_sec = int(value)
         except Exception as e:
             print(e)
 
     def get_display_dur(self):
-        return self.display_dur_ms
+        return self.display_dur_sec
 
     async def run_loop(self):
         try:
             self.next_image = await image_handler.get_next_img()
             while True:
-                if (time.time() * 1000) - self.switch_time  >= self.display_dur_ms and self.display_is_on:
+                if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000) and self.display_is_on:
                     await self.display_next_image()
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
