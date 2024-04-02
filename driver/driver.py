@@ -179,6 +179,10 @@ class DisplayHandler:
             options.hardware_mapping = 'regular'
             self.matrix = RGBMatrix(options = options)
 
+    async def set_pixels(self, pixels):
+        for x, y, color in pixels:
+            self.matrix.SetPixel(x, y, *color)
+
     async def refresh(self):
         self.matrix.Clear()
         self.matrix.SetImage(self.current_image, unsafe=False)
@@ -233,14 +237,23 @@ class DisplayHandler:
         try:
             self.next_image = await image_handler.get_next_img()
             while True:
-                if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000) and self.display_is_on:
-                    await self.display_next_image()
-                await asyncio.sleep(self.sleep_dur_ms / 1000)
+                if self.display_is_on:
+                    # if self.image_show:
+                    if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
+                        await self.display_next_image()
+                    await asyncio.sleep(self.sleep_dur_ms / 1000)
+                    # elif self.snake_show:
+                    #     await self.snake()
+                    #     await asyncio.sleep(1 / snake_handler.fps)
         except KeyboardInterrupt:
             print("shutting down")
             global listener
             listener.close()
             sys.exit(0)
+
+
+# class SnakeHandler:
+#     def __init__(self, runs_dir) -> None:
 
 
 class ImageHandler:
