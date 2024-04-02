@@ -61,6 +61,10 @@ class MsgHandler:
         if setter is not None: self.set_handlers[message_key] = setter
         if getter is not None: self.get_handlers[message_key] = getter
 
+    async def send_update(self, *msg_keys):
+        message = {key: self.get_handlers[key] for key in msg_keys}
+        await socket_handler.send_message(message)
+
     async def handle_msg(self, payload):
         tasks = []
         message = None
@@ -104,12 +108,20 @@ class StoreFileHander:
 class SocketHandler:
     def __init__(self, sock_file) -> None:
         self.sock_file = sock_file
+        self.connections = set()
+
+    async def send_message(self, msg_dict):
+        payload = json.dumps(msg_dict) + '\n'
+        data = payload.encode('utf8')
+        for r, w in self.connections:
+            w.write(data)
 
     async def run_loop(self):
         while True:
             try:
                 print(f"Trying to connect to socket: '{self.sock_file}'")
                 reader, writer = await asyncio.open_unix_connection(self.sock_file)
+                self.connections.add((reader, writer))
                 print(f"Connected to socket: {self.sock_file}")
             except ConnectionRefusedError as e:
                 print(f"Socket not available: {e}")
@@ -142,6 +154,7 @@ class SocketHandler:
                 finally:
                     writer.close()
                     await writer.wait_closed()
+                    self.connections.remove((reader, writer))
 
 
 class DisplayHandler:
@@ -179,6 +192,7 @@ class DisplayHandler:
         self.matrix.SetImage(self.next_image, unsafe=False)
         self.current_image = self.next_image
         self.switch_time = time.time() * 1000
+        await msg_handler.send_update('image')
         self.next_image = await image_handler.get_next_img()
 
     async def set_display_on(self, value):
