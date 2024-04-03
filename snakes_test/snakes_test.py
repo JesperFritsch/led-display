@@ -24,6 +24,7 @@ if __name__ == '__main__':
     random.shuffle(run_files)
     for file in run_files:
         filepath = os.path.join(runs_dir, file)
+        matrix.Clear()
         with open(filepath, 'r') as f:
             step_data = json.loads(f.readline())
             while True:
