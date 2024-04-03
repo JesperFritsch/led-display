@@ -25,7 +25,7 @@ if __name__ == '__main__':
     for file in run_files:
         filepath = os.path.join(runs_dir, file)
         with open(filepath, 'r') as f:
-            changes = json.load(f.readline())
+            changes = json.loads(f.readline())
             for step_data in changes:
                 for (x, y), color in step_data:
                     matrix.SetPixel(x, y, *color)
