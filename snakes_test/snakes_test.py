@@ -1,5 +1,7 @@
 import os
+import json
 import time
+import random
 from snake_sim.render import core as render_core
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
@@ -17,11 +19,13 @@ if __name__ == '__main__':
     options.parallel = 1
     options.hardware_mapping = 'regular'
     matrix = RGBMatrix(options = options)
-    latest_file = max([os.path.join(runs_dir, f) for f in os.listdir(runs_dir)], key=os.path.getctime)
-    pixel_changes = render_core.pixel_changes_from_runfile(latest_file)
     framerate = 10
-    changes = pixel_changes['changes']
-    for step_data in changes:
-        for (x, y), color in step_data:
-            matrix.SetPixel(x, y, *color)
-        time.sleep(1/framerate)
+    for file in random.shuffle(os.listdir(runs_dir)):
+        filepath = os.path.join(runs_dir, file)
+        with open(filepath, 'r') as f:
+            pixel_changes = json.load(f)
+        changes = pixel_changes['changes']
+        for step_data in changes:
+            for (x, y), color in step_data:
+                matrix.SetPixel(x, y, *color)
+            time.sleep(1/framerate)
