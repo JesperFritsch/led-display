@@ -23,9 +23,8 @@ if __name__ == '__main__':
     for file in random.shuffle(os.listdir(runs_dir)):
         filepath = os.path.join(runs_dir, file)
         with open(filepath, 'r') as f:
-            pixel_changes = json.load(f)
-        changes = pixel_changes['changes']
-        for step_data in changes:
-            for (x, y), color in step_data:
-                matrix.SetPixel(x, y, *color)
-            time.sleep(1/framerate)
+            changes = json.load(f.readline())
+            for step_data in changes:
+                for (x, y), color in step_data:
+                    matrix.SetPixel(x, y, *color)
+                time.sleep(1/framerate)
