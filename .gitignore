@@ -1,5 +1,6 @@
 __pycache__/
 pixelart-dcaff*
+snakes_test/runs/
 **/images
 *.data
 *.png
