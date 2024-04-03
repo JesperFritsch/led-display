@@ -20,7 +20,9 @@ if __name__ == '__main__':
     options.hardware_mapping = 'regular'
     matrix = RGBMatrix(options = options)
     framerate = 10
-    for file in random.shuffle(os.listdir(runs_dir)):
+    run_files = os.listdir(runs_dir)
+    random.shuffle(run_files)
+    for file in run_files:
         filepath = os.path.join(runs_dir, file)
         with open(filepath, 'r') as f:
             changes = json.load(f.readline())
