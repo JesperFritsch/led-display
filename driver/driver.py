@@ -114,6 +114,8 @@ class SnakeHandler:
         self.fps = 10
         self.running = False
         self.pixel_changes = []
+        self.stream_task = None
+        self.websocket = None
         self.current_step = 0
         self.stream_host = "ws://DESKTOP-9PJQ0A4" # stationary pc
         self.stream_port = 42069
@@ -164,6 +166,9 @@ class SnakeHandler:
             await websocket.close()
 
     async def restart(self, value):
+        self.websocket.close()
+        self.stream_closed = True
+        self.stream_task.cancel()
         self.running = False
         self.pixel_changes = []
         self.current_step = 0
@@ -352,7 +357,7 @@ class DisplayHandler:
                     elif self.mode == 'snakes':
                         if not snake_handler.running:
                             self.matrix.Clear()
-                            asyncio.create_task(snake_handler.snake_stream())
+                            snake_handler.stream_task = asyncio.create_task(snake_handler.snake_stream())
                         if snake_handler.current_step < len(snake_handler.pixel_changes):
                             self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
                             snake_handler.current_step += 1
