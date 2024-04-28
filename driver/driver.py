@@ -261,10 +261,10 @@ class DisplayHandler:
             snake_handler.running = False
         self.mode = value
 
-    async def get_mode(self):
+    def get_mode(self):
         return self.mode
 
-    async def get_modes(self):
+    def get_modes(self):
         return self.modes
 
     async def set_image(self, image):
