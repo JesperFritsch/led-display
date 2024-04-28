@@ -166,7 +166,7 @@ class SnakeHandler:
             await self.websocket.close()
 
     async def restart(self, value):
-        self.websocket.close()
+        await self.websocket.close()
         self.stream_closed = True
         self.stream_task.cancel()
         self.running = False
