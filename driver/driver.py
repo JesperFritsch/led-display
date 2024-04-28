@@ -117,11 +117,13 @@ class SnakeHandler:
         self.current_step = 0
         self.stream_host = "ws://DESKTOP-9PJQ0A4" # stationary pc
         self.stream_port = 42069
+        self.stream_closed = True
 
     async def snake_stream(self):
         self.pixel_changes = []
         self.current_step = 0
         self.running = True
+        self.stream_closed = False
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
             websocket = await websockets.connect(uri)
@@ -159,6 +161,7 @@ class SnakeHandler:
             self.running = False
             return
         finally:
+            self.stream_closed = True
             await websocket.close()
 
 
@@ -268,7 +271,7 @@ class DisplayHandler:
             self.matrix = RGBMatrix(options = options)
 
     def set_pixels(self, pixels):
-        for x, y, color in pixels:
+        for (x, y), color in pixels:
             self.matrix.SetPixel(x, y, *color)
 
     async def refresh(self):
@@ -345,12 +348,14 @@ class DisplayHandler:
                             await self.display_next_image()
                     elif self.mode == 'snakes':
                         if not snake_handler.running:
-                            snake_task = asyncio.create_task(snake_handler.snake_stream())
-                            await snake_task
-                        print('snakes_step: ', snake_handler.current_step)
-                        self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
-                        snake_handler.current_step += 1
-                        await asyncio.sleep(1 / snake_handler.fps)
+                            asyncio.create_task(snake_handler.snake_stream())
+                        if snake_handler.pixel_changes:
+                            print('snakes_step: ', snake_handler.current_step)
+                            self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
+                            snake_handler.current_step += 1
+                            await asyncio.sleep(1 / snake_handler.fps)
+                        if snake_handler.stream_closed and len(snake_handler.pixel_changes) < snake_handler.current_step:
+                            snake_handler.running = False
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
