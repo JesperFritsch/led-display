@@ -62,7 +62,7 @@ class MsgHandler:
         if getter is not None: self.get_handlers[message_key] = getter
 
     async def send_update(self, *msg_keys):
-        message = {key: self.get_handlers[key] for key in msg_keys}
+        message = {key: self.get_handlers[key]() for key in msg_keys}
         await socket_handler.send_message(message)
 
     async def handle_msg(self, payload):
@@ -103,6 +103,31 @@ class StoreFileHander:
         with open(self.filepath, 'a+') as file:
             file.seek(0, 2)
             file.write(f"{entry}\n")
+
+
+class SnakeHandler:
+    def __init__(self) -> None:
+        self.nr_snakes = 1
+        self.food_count = 1
+        self.snakes = []
+
+    async def set_nr_snakes(self, value):
+        try:
+            self.nr_snakes = int(value)
+        except Exception as e:
+            print(e)
+
+    def get_nr_snakes(self):
+        return self.nr_snakes
+
+    async def set_food_count(self, value):
+        try:
+            self.food_count = int(value)
+        except Exception as e:
+            print(e)
+
+    def get_food_count(self):
+        return self.food_count
 
 
 class SocketHandler:
@@ -165,6 +190,7 @@ class DisplayHandler:
         self.next_image = None
         self.switch_time = 0
         self.matrix = None
+        self.mode = 'images'
         self.display_is_on = True
 
     def init_matrix(self):
@@ -186,6 +212,9 @@ class DisplayHandler:
     async def refresh(self):
         self.matrix.Clear()
         self.matrix.SetImage(self.current_image, unsafe=False)
+
+    async def set_mode(self, value):
+        self.mode = 'snakes' if value else 'images'
 
     async def set_image(self, image):
         self.next_image = image
@@ -385,6 +414,7 @@ if __name__ == '__main__':
     display_handler = DisplayHandler()
     display_handler.init_matrix()
     image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
+    snake_handler = SnakeHandler()
     socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
 
@@ -394,6 +424,9 @@ if __name__ == '__main__':
     msg_handler.add_handlers('image', set_image, get_image)
     msg_handler.add_handlers('image_dir', getter=image_handler.get_image_dir)
     msg_handler.add_handlers('images', getter=image_handler.get_image_names)
+    msg_handler.add_handlers('nr_snakes', snake_handler.get_nr_snakes, snake_handler.set_nr_snakes)
+    msg_handler.add_handlers('food_count', snake_handler.get_food_count, snake_handler.set_food_count)
+    msg_handler.add_handlers('run_snakes', setter=display_handler.set_mode)
 
     listener = None
 
