@@ -121,7 +121,13 @@ class SnakeHandler:
         self.pixel_changes = []
         self.current_step = 0
         self.running = True
-        reader, writer = await asyncio.open_connection(host=self.stream_host + '/ws', port=self.stream_port)
+        try:
+            reader, writer = await asyncio.open_connection(host=self.stream_host + '/ws', port=self.stream_port)
+        except Exception as e:
+            print(f'could not connect to {self.stream_host + '/ws'} on port {self.stream_port}')
+            print(e)
+            self.running = False
+            return
         config = {
             "grid_width": 32,
             "grid_height": 32,
@@ -129,15 +135,27 @@ class SnakeHandler:
             "nr_of_snakes": self.nr_snakes,
             "data_mode": "pixel_data"
         }
-        writer.write(json.dumps(config).encode('utf8'))
-        await writer.drain()
-        ack = await reader.readline()
+        try:
+            writer.write(json.dumps(config).encode('utf8'))
+            await writer.drain()
+            await reader.readline() # wait for ACK
+            print('connected to stream')
+        except Exception as e:
+            print(e)
+            self.running = False
+            return
         while self.running:
-            data = await reader.readline()
-            if data:
-                self.pixel_changes.extend(json.loads(data))
-                print(self.pixel_changes[-1])
-            else:
+            try:
+                data = await reader.readline()
+                if data:
+                    self.pixel_changes.extend(json.loads(data))
+                    print(self.pixel_changes[-1])
+                else:
+                    break
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                print(e)
                 break
         writer.close()
 
@@ -256,10 +274,10 @@ class DisplayHandler:
         self.matrix.SetImage(self.current_image, unsafe=False)
 
     async def set_mode(self, value):
-        self.matrix.Clear()
-        if value != 'snakes':
-            snake_handler.running = False
+        if value == 'snakes':
+            self.matrix.Clear()
         if value == 'images':
+            snake_handler.running = False
             self.switch_time = 0
         self.mode = value
 
