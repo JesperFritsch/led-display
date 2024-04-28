@@ -259,6 +259,8 @@ class DisplayHandler:
         self.matrix.Clear()
         if value != 'snakes':
             snake_handler.running = False
+        if value == 'images':
+            self.switch_time = 0
         self.mode = value
 
     def get_mode(self):
