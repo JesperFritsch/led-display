@@ -124,7 +124,7 @@ class SnakeHandler:
         try:
             reader, writer = await asyncio.open_connection(host=self.stream_host + '/ws', port=self.stream_port)
         except Exception as e:
-            print(f'could not connect to {self.stream_host + '/ws'} on port {self.stream_port}')
+            print(f'could not connect to {self.stream_host + "/ws"} on port {self.stream_port}')
             print(e)
             self.running = False
             return
