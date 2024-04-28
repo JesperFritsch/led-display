@@ -424,8 +424,8 @@ if __name__ == '__main__':
     msg_handler.add_handlers('image', set_image, get_image)
     msg_handler.add_handlers('image_dir', getter=image_handler.get_image_dir)
     msg_handler.add_handlers('images', getter=image_handler.get_image_names)
-    msg_handler.add_handlers('nr_snakes', snake_handler.get_nr_snakes, snake_handler.set_nr_snakes)
-    msg_handler.add_handlers('food_count', snake_handler.get_food_count, snake_handler.set_food_count)
+    msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
+    msg_handler.add_handlers('food_count', snake_handler.set_food_count, snake_handler.get_food_count)
     msg_handler.add_handlers('run_snakes', setter=display_handler.set_mode)
 
     listener = None
