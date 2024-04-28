@@ -123,8 +123,9 @@ class SnakeHandler:
         self.current_step = 0
         self.running = True
         try:
-            uri = self.stream_host + self.stream_port + '/ws'
+            uri = f"{self.stream_host}:{self.stream_port}/ws"
             websocket = await websockets.connect(uri)
+            print('connected to stream')
         except Exception as e:
             print(f'could not connect to {uri}')
             print(e)
@@ -140,7 +141,6 @@ class SnakeHandler:
         try:
             await websocket.send(json.dumps(config))
             ack = await websocket.recv()
-            print('connected to stream')
             while self.running:
                 try:
                     data = await websocket.recv()
