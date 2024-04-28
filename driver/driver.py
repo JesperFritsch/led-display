@@ -148,7 +148,6 @@ class SnakeHandler:
                     data = await websocket.recv()
                     if data:
                         self.pixel_changes.extend(json.loads(data))
-                        print(self.pixel_changes[-1])
                     else:
                         break
                 except websockets.exceptions.ConnectionClosed:
@@ -164,6 +163,10 @@ class SnakeHandler:
             self.stream_closed = True
             await websocket.close()
 
+    async def restart(self, value):
+        self.running = False
+        self.pixel_changes = []
+        self.current_step = 0
 
     async def set_fps(self, value):
         try:
@@ -349,12 +352,11 @@ class DisplayHandler:
                     elif self.mode == 'snakes':
                         if not snake_handler.running:
                             asyncio.create_task(snake_handler.snake_stream())
-                        if snake_handler.pixel_changes:
-                            print('snakes_step: ', snake_handler.current_step)
+                        if snake_handler.current_step < len(snake_handler.pixel_changes):
                             self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
                             snake_handler.current_step += 1
                             await asyncio.sleep(1 / snake_handler.fps)
-                        if snake_handler.stream_closed and len(snake_handler.pixel_changes) < snake_handler.current_step:
+                        elif snake_handler.stream_closed:
                             snake_handler.running = False
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
@@ -509,6 +511,7 @@ if __name__ == '__main__':
     msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
     msg_handler.add_handlers('food_count', snake_handler.set_food_count, snake_handler.get_food_count)
     msg_handler.add_handlers('snakes_fps', snake_handler.set_fps, snake_handler.get_fps)
+    msg_handler.add_handlers('restart_snakes', setter=snake_handler.restart)
 
 
     listener = None
