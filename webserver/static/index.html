@@ -19,6 +19,10 @@
             <custom-checkbox label='Display on' param='display_on' />
             <input-field label='Display duration sec' param='display_dur' />
             <input-field label='Brightness' param='brightness' />
+            <custom-checkbox label='Run snakes' param='run_snakes' />
+            <input-field label='Nr of snakes' param='nr_snakes' />
+            <input-field label='Food count' param='food' />
+            <cmd-btn label='Restart snakes' cmd='restart_snakes' />
             <div id="img-container">
                 <image-btn v-for="img_name of screenParams.images" :img_name="img_name">
             </div>
@@ -27,12 +31,12 @@
 
     <script type="text/x-template" id="input-field">
         <div>
-            <label for="input-{{ label }}"> {{ label }}
+            <label for="input-{{ param }}"> {{ label }}
                 <input
                 @change.prevent=onChange
                 type="text"
                 class="input-field"
-                id="input-{{ label }}"
+                id="input-{{ param }}"
                 v-model='textValue'>
             </label>
         </div>
@@ -57,6 +61,16 @@
             class='img-btn'
             @click.prevent="onClick"
             alt="">
+        </div>
+    </script>
+
+    <script type="text/x-template" id="cmd-btn-template">
+        <div>
+            <button
+            @click.prevent="onClick"
+            class='cmd-btn'>
+                {{ label }}
+            </button>
         </div>
     </script>
 

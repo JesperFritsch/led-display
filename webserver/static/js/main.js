@@ -11,14 +11,17 @@ import {
     onMounted } from 'vue';
 
 const screenManager = new ScreenManager();
-// const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
-const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
+const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
+// const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
     display_on: true,
     brightness: 0,
     display_dur: 20,
-    images: []
+    images: [],
+    run_snakes: false,
+    nr_snakes: 7,
+    food: 15
 })
 
 const inputField = defineComponent({
@@ -67,6 +70,22 @@ const customCheckbox = defineComponent({
     }
 })
 
+const cmdButton = defineComponent({
+    template: '#cmd-btn-template',
+    props: {
+        label: String,
+        cmd: String
+    },
+    setup(props){
+        function onClick(){
+            screenManager.set(props.cmd, true);
+        }
+        return {
+            onClick
+        }
+    }
+});
+
 const imageButton = defineComponent({
     template: '#image-template',
     props: {
@@ -90,6 +109,7 @@ const app = defineComponent({
         'custom-checkbox': customCheckbox,
         'input-field': inputField,
         'image-btn': imageButton,
+        'cmd-btn': cmdButton
     },
     setup(){
         return {screenParams}
@@ -100,5 +120,6 @@ createApp(app).mount('#app');
 export {
     commHandler,
     screenParams,
-    imageButton
+    imageButton,
+    cmdButton
 };
