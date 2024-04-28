@@ -128,7 +128,7 @@ class SnakeHandler:
         self.stream_closed = False
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
-            websocket = await websockets.connect(uri)
+            self.websocket = await websockets.connect(uri)
             print('connected to stream')
         except Exception as e:
             print(f'could not connect to {uri}')
@@ -143,11 +143,11 @@ class SnakeHandler:
             "data_mode": "pixel_data"
         }
         try:
-            await websocket.send(json.dumps(config))
-            ack = await websocket.recv()
+            await self.websocket.send(json.dumps(config))
+            ack = await self.websocket.recv()
             while self.running:
                 try:
-                    data = await websocket.recv()
+                    data = await self.websocket.recv()
                     if data:
                         self.pixel_changes.extend(json.loads(data))
                     else:
@@ -163,7 +163,7 @@ class SnakeHandler:
             return
         finally:
             self.stream_closed = True
-            await websocket.close()
+            await self.websocket.close()
 
     async def restart(self, value):
         self.websocket.close()
