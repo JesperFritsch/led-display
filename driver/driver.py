@@ -107,8 +107,8 @@ class StoreFileHander:
 
 class SnakeHandler:
     def __init__(self) -> None:
-        self.nr_snakes = 1
-        self.food_count = 1
+        self.nr_snakes = 7
+        self.food_count = 15
         self.snakes = []
         self.fps = 10
         self.running = False
@@ -247,7 +247,7 @@ class DisplayHandler:
             options.hardware_mapping = 'regular'
             self.matrix = RGBMatrix(options = options)
 
-    async def set_pixels(self, pixels):
+    def set_pixels(self, pixels):
         for x, y, color in pixels:
             self.matrix.SetPixel(x, y, *color)
 
@@ -325,6 +325,7 @@ class DisplayHandler:
                         if not snake_handler.running:
                             snake_task = asyncio.create_task(snake_handler.snake_stream())
                             await snake_task
+                        print('snakes_step: ', snake_handler.current_step)
                         self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
                         snake_handler.current_step += 1
                         await asyncio.sleep(1 / snake_handler.fps)
@@ -449,8 +450,9 @@ def get_image():
     return image_handler.current_img_name
 
 async def set_image(img_name):
-    img_obj = await image_handler.proccess_img(img_name)
-    await display_handler.set_image(img_obj)
+    if display_handler.mode == 'images':
+        img_obj = await image_handler.proccess_img(img_name)
+        await display_handler.set_image(img_obj)
 
 def newImageEvent(loop, new_image_queue, event):
     if isinstance(event.data, str):
