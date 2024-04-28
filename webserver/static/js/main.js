@@ -11,17 +11,20 @@ import {
     onMounted } from 'vue';
 
 const screenManager = new ScreenManager();
-// const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
-const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
+const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
+// const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
     display_on: true,
     brightness: 0,
     display_dur: 20,
     images: [],
+    display_mode: 'images',
+    display_modes: [],
     run_snakes: false,
     nr_snakes: 7,
-    food: 15
+    food: 15,
+    snakes_fps: 10
 })
 
 const inputField = defineComponent({
@@ -101,7 +104,29 @@ const imageButton = defineComponent({
             onClick
         }
     }
-})
+});
+
+const radioButton = defineComponent({
+    template: '#radio-btn-template',
+    props: {
+        label: String,
+        param: String,
+        group: String
+    },
+    setup(props){
+        const checked = ref(false);
+        function onChange(){
+            screenManager.set(props.group, props.param);
+        }
+        watch(() => screenParams[props.param], (newVal, oldVal) => {
+            checked.value = newVal === props.param;
+        })
+        return {
+            onChange,
+            checked
+        }
+    }
+});
 
 const app = defineComponent({
     template: '#app-template',
@@ -109,7 +134,8 @@ const app = defineComponent({
         'custom-checkbox': customCheckbox,
         'input-field': inputField,
         'image-btn': imageButton,
-        'cmd-btn': cmdButton
+        'cmd-btn': cmdButton,
+        'radio-btn': radioButton
     },
     setup(){
         return {screenParams}
@@ -121,5 +147,6 @@ export {
     commHandler,
     screenParams,
     imageButton,
-    cmdButton
+    cmdButton,
+    radioButton
 };

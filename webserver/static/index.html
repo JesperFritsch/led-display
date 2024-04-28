@@ -22,7 +22,12 @@
             <custom-checkbox label='Run snakes' param='run_snakes' />
             <input-field label='Nr of snakes' param='nr_snakes' />
             <input-field label='Food count' param='food' />
+            <input-field label='Snakes FPS' param='snakes_fps' />
             <cmd-btn label='Restart snakes' cmd='restart_snakes' />
+            <div id="mode-options">
+                <p>Mode options</p>
+                <radio-btn v-for="mode of screenParams.display_modes" :label="mode" :param="mode" group="display_mode" />
+            </div>
             <div id="img-container">
                 <image-btn v-for="img_name of screenParams.images" :img_name="img_name" />
             </div>
@@ -61,6 +66,19 @@
             class='img-btn'
             @click.prevent="onClick"
             alt="">
+        </div>
+    </script>
+
+    <script type="text/x-template" id="radio-btn-template">
+        <div>
+            <label for="radio-{{ param }}"> {{ label }}
+                <input
+                type="radio"
+                name="{{ group }}"
+                id="radio-{{ param }}"
+                @change.prevent="onChange"
+                :checked="checked">
+            </label>
         </div>
     </script>
 

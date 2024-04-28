@@ -110,6 +110,46 @@ class SnakeHandler:
         self.nr_snakes = 1
         self.food_count = 1
         self.snakes = []
+        self.fps = 10
+        self.running = False
+        self.pixel_changes = []
+        self.current_step = 0
+        self.stream_host = "DESKTOP-9PJQ0A4" # stationary pc
+        self.stream_port = 42069
+
+    async def snake_stream(self):
+        self.pixel_changes = []
+        self.current_step = 0
+        self.running = True
+        reader, writer = await asyncio.open_connection(host=self.stream_host + '/ws', port=self.stream_port)
+        config = {
+            "grid_width": 32,
+            "grid_height": 32,
+            "food_count": self.food_count,
+            "nr_of_snakes": self.nr_snakes,
+            "data_mode": "pixel_data"
+        }
+        writer.write(json.dumps(config).encode('utf8'))
+        await writer.drain()
+        ack = await reader.readline()
+        while self.running:
+            data = await reader.readline()
+            if data:
+                self.pixel_changes.extend(json.loads(data))
+                print(self.pixel_changes[-1])
+            else:
+                break
+        writer.close()
+
+
+    async def set_fps(self, value):
+        try:
+            self.fps = int(value)
+        except Exception as e:
+            print(e)
+
+    def get_fps(self):
+        return self.fps
 
     async def set_nr_snakes(self, value):
         try:
@@ -191,6 +231,7 @@ class DisplayHandler:
         self.switch_time = 0
         self.matrix = None
         self.mode = 'images'
+        self.modes = ['images', 'snakes']
         self.display_is_on = True
 
     def init_matrix(self):
@@ -214,7 +255,16 @@ class DisplayHandler:
         self.matrix.SetImage(self.current_image, unsafe=False)
 
     async def set_mode(self, value):
-        self.mode = 'snakes' if value else 'images'
+        self.matrix.Clear()
+        if value != 'snakes':
+            snake_handler.running = False
+        self.mode = value
+
+    async def get_mode(self):
+        return self.mode
+
+    async def get_modes(self):
+        return self.modes
 
     async def set_image(self, image):
         self.next_image = image
@@ -267,22 +317,22 @@ class DisplayHandler:
             self.next_image = await image_handler.get_next_img()
             while True:
                 if self.display_is_on:
-                    # if self.image_show:
-                    if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
-                        await self.display_next_image()
-                    await asyncio.sleep(self.sleep_dur_ms / 1000)
-                    # elif self.snake_show:
-                    #     await self.snake()
-                    #     await asyncio.sleep(1 / snake_handler.fps)
+                    if self.mode == 'images':
+                        if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
+                            await self.display_next_image()
+                    elif self.mode == 'snakes':
+                        if not snake_handler.running:
+                            snake_task = asyncio.create_task(snake_handler.snake_stream())
+                            await snake_task
+                        self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
+                        snake_handler.current_step += 1
+                        await asyncio.sleep(1 / snake_handler.fps)
+                await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
             global listener
             listener.close()
             sys.exit(0)
-
-
-# class SnakeHandler:
-#     def __init__(self, runs_dir) -> None:
 
 
 class ImageHandler:
@@ -421,12 +471,15 @@ if __name__ == '__main__':
     msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
     msg_handler.add_handlers('display_dur', display_handler.set_display_dur, display_handler.get_display_dur)
     msg_handler.add_handlers('display_on', display_handler.set_display_on, display_handler.get_display_on)
+    msg_handler.add_handlers('display_mode', display_handler.set_mode, display_handler.get_mode)
+    msg_handler.add_handlers('display_modes', getter=display_handler.get_modes)
     msg_handler.add_handlers('image', set_image, get_image)
     msg_handler.add_handlers('image_dir', getter=image_handler.get_image_dir)
     msg_handler.add_handlers('images', getter=image_handler.get_image_names)
     msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
     msg_handler.add_handlers('food_count', snake_handler.set_food_count, snake_handler.get_food_count)
-    msg_handler.add_handlers('run_snakes', setter=display_handler.set_mode)
+    msg_handler.add_handlers('snakes_fps', snake_handler.set_fps, snake_handler.get_fps)
+
 
     listener = None
 

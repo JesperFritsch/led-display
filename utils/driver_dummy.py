@@ -363,9 +363,20 @@ if __name__ == '__main__':
     def get_image():
         return 'some_image'
 
+    async def fake_setter(value):
+        print(f'setting: {value}')
+        return
+
+    def get_modes():
+        return ['images', 'snakes']
+
     msg_handler.add_handlers('image_dir', getter=image_dir_resp)
     msg_handler.add_handlers('images', getter=image_names)
     msg_handler.add_handlers('image', getter=get_image, setter=set_image_fake)
+    msg_handler.add_handlers('display_modes', getter=get_modes)
+    msg_handler.add_handlers('display_mode', fake_setter, lambda: 'snakes')
+    msg_handler.add_handlers('nr_snakes', fake_setter, lambda: 20)
+
     listener = None
 
     asyncio.run(main())
