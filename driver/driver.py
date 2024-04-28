@@ -3,6 +3,7 @@ import sys
 import os
 import asyncio
 import firebase_admin
+import websockets
 import random
 import time
 import argparse
@@ -114,7 +115,7 @@ class SnakeHandler:
         self.running = False
         self.pixel_changes = []
         self.current_step = 0
-        self.stream_host = "DESKTOP-9PJQ0A4" # stationary pc
+        self.stream_host = "ws://DESKTOP-9PJQ0A4" # stationary pc
         self.stream_port = 42069
 
     async def snake_stream(self):
@@ -122,9 +123,10 @@ class SnakeHandler:
         self.current_step = 0
         self.running = True
         try:
-            reader, writer = await asyncio.open_connection(host=self.stream_host + '/ws', port=self.stream_port)
+            uri = self.stream_host + self.stream_port + '/ws'
+            websocket = await websockets.connect(uri)
         except Exception as e:
-            print(f'could not connect to {self.stream_host + "/ws"} on port {self.stream_port}')
+            print(f'could not connect to {uri}')
             print(e)
             self.running = False
             return
@@ -136,28 +138,28 @@ class SnakeHandler:
             "data_mode": "pixel_data"
         }
         try:
-            writer.write(json.dumps(config).encode('utf8'))
-            await writer.drain()
-            await reader.readline() # wait for ACK
+            await websocket.send(json.dumps(config))
+            ack = await websocket.recv()
             print('connected to stream')
+            while self.running:
+                try:
+                    data = await websocket.recv()
+                    if data:
+                        self.pixel_changes.extend(json.loads(data))
+                        print(self.pixel_changes[-1])
+                    else:
+                        break
+                except websockets.exceptions.ConnectionClosed:
+                    break
+                except Exception as e:
+                    print(e)
+                    break
         except Exception as e:
             print(e)
             self.running = False
             return
-        while self.running:
-            try:
-                data = await reader.readline()
-                if data:
-                    self.pixel_changes.extend(json.loads(data))
-                    print(self.pixel_changes[-1])
-                else:
-                    break
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                print(e)
-                break
-        writer.close()
+        finally:
+            await websocket.close()
 
 
     async def set_fps(self, value):
