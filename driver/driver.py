@@ -210,6 +210,7 @@ class SocketHandler:
                                     await writer.drain()
                             except Exception as e:
                                 print('Some shit happened: ', e)
+                                print(response)
                         else:
                             print('Connection closed')
                             break
