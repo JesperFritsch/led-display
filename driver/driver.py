@@ -121,7 +121,13 @@ class SnakeHandler:
         self.stream_port = 42069
         self.stream_closed = True
 
-    async def snake_stream(self):
+    async def stop_snake_stream(self):
+        await self.websocket.close()
+        self.stream_closed = True
+        self.stream_task.cancel()
+        self.running = False
+
+    async def start_snake_stream(self):
         self.pixel_changes = []
         self.current_step = 0
         self.running = True
@@ -166,10 +172,7 @@ class SnakeHandler:
             await self.websocket.close()
 
     async def restart(self, value):
-        await self.websocket.close()
-        self.stream_closed = True
-        self.stream_task.cancel()
-        self.running = False
+        await self.stop_snake_stream()
         self.pixel_changes = []
         self.current_step = 0
 
@@ -290,6 +293,7 @@ class DisplayHandler:
         if value == 'snakes':
             self.matrix.Clear()
         if value == 'images':
+            await snake_handler.stop_snake_stream()
             snake_handler.running = False
             self.switch_time = 0
         self.mode = value
@@ -357,7 +361,7 @@ class DisplayHandler:
                     elif self.mode == 'snakes':
                         if not snake_handler.running:
                             self.matrix.Clear()
-                            snake_handler.stream_task = asyncio.create_task(snake_handler.snake_stream())
+                            snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
                         if snake_handler.current_step < len(snake_handler.pixel_changes):
                             self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
                             snake_handler.current_step += 1
