@@ -122,10 +122,16 @@ class SnakeHandler:
         self.stream_closed = True
 
     async def stop_snake_stream(self):
-        await self.websocket.close()
+        if self.websocket is not None:
+            await self.websocket.close()
+            self.websocket = None
+        if self.stream_task is not None:
+            self.stream_task.cancel()
+            self.stream_task = None
         self.stream_closed = True
-        self.stream_task.cancel()
         self.running = False
+        self.pixel_changes = []
+        self.current_step = 0
 
     async def start_snake_stream(self):
         self.pixel_changes = []
@@ -178,7 +184,7 @@ class SnakeHandler:
 
     async def set_fps(self, value):
         try:
-            self.fps = int(value)
+            self.fps = int(value) or 1
         except Exception as e:
             print(e)
 
@@ -294,7 +300,6 @@ class DisplayHandler:
             self.matrix.Clear()
         if value == 'images':
             await snake_handler.stop_snake_stream()
-            snake_handler.running = False
             self.switch_time = 0
         self.mode = value
 
@@ -336,7 +341,8 @@ class DisplayHandler:
             self.matrix.brightness = int(value)
         except Exception as e:
             print(e)
-        await self.refresh()
+        if self.mode == 'images':
+            await self.refresh()
 
     def get_brightness(self):
         return self.matrix.brightness
