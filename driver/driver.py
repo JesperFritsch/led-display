@@ -117,7 +117,7 @@ class SnakeHandler:
         self.stream_task = None
         self.websocket = None
         self.current_step = 0
-        self.stream_host = "ws://DESKTOP-9PJQ0A4" # stationary pc
+        self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
         self.stream_closed = True
 
