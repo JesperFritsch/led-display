@@ -329,7 +329,7 @@ class DisplayHandler:
         if value is False:
             self.matrix.Clear()
             self.display_is_on = False
-            snake_handler.stop_snake_stream()
+            await snake_handler.stop_snake_stream()
         else:
             self.display_is_on = True
             self.switch_time = 0
