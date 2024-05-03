@@ -148,8 +148,8 @@ class SnakeHandler:
             self.running = False
             return
         config = {
-            "grid_width": 31,
-            "grid_height": 31,
+            "grid_width": 32,
+            "grid_height": 32,
             "food_count": self.food_count,
             "nr_of_snakes": self.nr_snakes,
             "data_mode": "pixel_data"
