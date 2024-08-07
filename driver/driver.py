@@ -158,11 +158,12 @@ class SnakeHandler:
                 try:
                     data = await self.websocket.recv()
                     if data:
-                        if data.lower() == 'end':
+                        if data == 'END':
                             self.running = False
                             break
                         self.pixel_changes.extend(json.loads(data))
                     else:
+                        self.running = False
                         break
                 except websockets.exceptions.ConnectionClosed:
                     break
@@ -366,6 +367,7 @@ class DisplayHandler:
                             await self.display_next_image()
                     elif self.mode == 'snakes':
                         if not snake_handler.running:
+                            await snake_handler.stop_snake_stream
                             self.matrix.Clear()
                             snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
                         if snake_handler.current_step < len(snake_handler.pixel_changes):
