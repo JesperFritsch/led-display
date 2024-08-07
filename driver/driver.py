@@ -7,6 +7,7 @@ import websockets
 import random
 import time
 import argparse
+import struct
 from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import storage
@@ -153,7 +154,8 @@ class SnakeHandler:
         }
         try:
             await self.websocket.send(json.dumps(config))
-            await self.websocket.recv() # get the ok from the server
+            ack = await self.websocket.recv() # get the ok from the server
+            init_data = await self.websocket.recv() # get the initialization data
             while self.running:
                 try:
                     data = await self.websocket.recv()
@@ -161,7 +163,8 @@ class SnakeHandler:
                         if data == 'END':
                             self.running = False
                             break
-                        self.pixel_changes.extend(json.loads(data))
+                        change = [((x, y), (r, g, b)) for x, y, r, g, b in struct.iter_unpack("BBBBB", data)]
+                        self.pixel_changes.append(change)
                     else:
                         self.running = False
                         break
