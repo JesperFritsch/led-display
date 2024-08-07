@@ -170,7 +170,7 @@ class SnakeHandler:
                 except Exception as e:
                     print(e)
                     break
-                await asyncio.sleep(1 / (self.fps * 3))
+                await asyncio.sleep(1 / (self.fps * 2))
         except Exception as e:
             print(e)
             self.running = False
