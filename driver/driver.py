@@ -367,7 +367,7 @@ class DisplayHandler:
                             await self.display_next_image()
                     elif self.mode == 'snakes':
                         if not snake_handler.running:
-                            await snake_handler.stop_snake_stream
+                            await snake_handler.stop_snake_stream()
                             self.matrix.Clear()
                             snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
                         if snake_handler.current_step < len(snake_handler.pixel_changes):
