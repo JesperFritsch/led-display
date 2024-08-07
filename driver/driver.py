@@ -173,13 +173,14 @@ class SnakeHandler:
                 except Exception as e:
                     print(e)
                     break
-                await asyncio.sleep(1 / (self.fps * 2))
+                await asyncio.sleep(0.005)
         except Exception as e:
             print(e)
             self.running = False
             return
         finally:
-            await self.websocket.close()
+            if self.websocket is not None:
+                await self.websocket.close()
 
     async def restart(self, value):
         await self.stop_snake_stream()
