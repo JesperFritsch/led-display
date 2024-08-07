@@ -119,7 +119,6 @@ class SnakeHandler:
         self.current_step = 0
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
-        self.stream_closed = True
 
     async def stop_snake_stream(self):
         if self.websocket is not None:
@@ -128,7 +127,6 @@ class SnakeHandler:
         if self.stream_task is not None:
             self.stream_task.cancel()
             self.stream_task = None
-        self.stream_closed = True
         self.running = False
         self.pixel_changes = []
         self.current_step = 0
@@ -137,7 +135,6 @@ class SnakeHandler:
         self.pixel_changes = []
         self.current_step = 0
         self.running = True
-        self.stream_closed = False
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
             self.websocket = await websockets.connect(uri)
@@ -156,11 +153,14 @@ class SnakeHandler:
         }
         try:
             await self.websocket.send(json.dumps(config))
-            ack = await self.websocket.recv()
+            await self.websocket.recv() # get the ok from the server
             while self.running:
                 try:
                     data = await self.websocket.recv()
                     if data:
+                        if data.lower() == 'end':
+                            self.running = False
+                            break
                         self.pixel_changes.extend(json.loads(data))
                     else:
                         break
@@ -174,7 +174,6 @@ class SnakeHandler:
             self.running = False
             return
         finally:
-            self.stream_closed = True
             await self.websocket.close()
 
     async def restart(self, value):
@@ -373,8 +372,6 @@ class DisplayHandler:
                             self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
                             snake_handler.current_step += 1
                             await asyncio.sleep(1 / snake_handler.fps)
-                        elif snake_handler.stream_closed:
-                            snake_handler.running = False
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
