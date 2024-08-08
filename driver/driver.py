@@ -173,6 +173,7 @@ class SnakeHandler:
             self.stream_task = None
         self.pixel_changes_buf.clear()
         self.pending_changes = 0
+        display_handler.matrix.Clear()
 
 
     async def start_snake_stream(self):
