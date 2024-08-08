@@ -131,17 +131,17 @@ class SnakeHandler:
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
         self.target_buffer_size = 50
-        self.requested_changes = 0
+        self.pending_changes = 0
 
     async def get_next_change(self):
         change = None
         changes_buf_len = len(self.pixel_changes_buf)
-        log.debug(f'Changes buffer len: {changes_buf_len}, requested changes: {self.requested_changes}')
+        log.debug(f'Changes buffer len: {changes_buf_len}, pending changes: {self.pending_changes}')
         if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
-                request_size = self.target_buffer_size - changes_buf_len - self.requested_changes
+                request_size = self.target_buffer_size - changes_buf_len - self.pending_changes
                 await self.websocket.send(f'GET {request_size}')
-                self.requested_changes += request_size
+                self.pending_changes += request_size
         if changes_buf_len > 0:
             change = self.pixel_changes_buf.popleft()
         return change
@@ -160,12 +160,12 @@ class SnakeHandler:
             self.stream_task = None
         self.running = False
         self.pixel_changes_buf.clear()
-        self.requested_changes = 0
+        self.pending_changes = 0
 
     async def start_snake_stream(self):
         log.debug('starting stream')
         self.pixel_changes_buf.clear()
-        self.requested_changes = 0
+        self.pending_changes = 0
         self.running = True
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
@@ -199,7 +199,7 @@ class SnakeHandler:
                             break
                         change = [((x, y), (r, g, b)) for x, y, r, g, b in struct.iter_unpack("BBBBB", data)]
                         self.pixel_changes_buf.append(change)
-                        self.requested_changes -= 1
+                        self.pending_changes -= 1
                     else:
                         self.running = False
                         break
