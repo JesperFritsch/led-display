@@ -124,6 +124,7 @@ class SnakeHandler:
         self.food_count = 15
         self.snakes = []
         self.fps = 10
+        self.last_step_time = 0
         self.pixel_changes_buf = deque()
         self.stream_task = None
         self.stream_done = False
@@ -417,9 +418,10 @@ class DisplayHandler:
                         if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
                             await self.display_next_image()
                     elif self.mode == 'snakes':
-                        if change := await snake_handler.get_next_change():
-                            self.set_pixels(change)
-                            await asyncio.sleep(1 / snake_handler.fps)
+                        if (time.time()) >= (1 / snake_handler.fps + snake_handler.last_step_time):
+                            snake_handler.last_step_time = time.time()
+                            if change := await snake_handler.get_next_change():
+                                self.set_pixels(change)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             log.info("shutting down")
