@@ -384,12 +384,12 @@ class DisplayHandler:
                         if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
                             await self.display_next_image()
                     elif self.mode == 'snakes':
+                        print('setting pixels')
                         if not snake_handler.running:
                             await snake_handler.stop_snake_stream()
                             self.matrix.Clear()
                             snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
                         if change := await snake_handler.get_next_change():
-                            print('setting pixels')
                             self.set_pixels(change)
                             await asyncio.sleep(1 / snake_handler.fps)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
