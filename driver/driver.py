@@ -197,7 +197,6 @@ class SnakeHandler:
                     break
 
         except Exception as e:
-            print("piss")
             print(e)
             self.running = False
             return
@@ -397,9 +396,9 @@ class DisplayHandler:
                             await snake_handler.stop_snake_stream()
                             self.matrix.Clear()
                             snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
-                        # if change := await snake_handler.get_next_change():
-                        #     self.set_pixels(change)
-                        #     await asyncio.sleep(1 / snake_handler.fps)
+                        if change := await snake_handler.get_next_change():
+                            self.set_pixels(change)
+                            await asyncio.sleep(1 / snake_handler.fps)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
