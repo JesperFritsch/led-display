@@ -162,7 +162,7 @@ class SnakeHandler:
         return change
 
     async def stop_snake_stream(self):
-        if self.stream_stopped:
+        if self.stream_stopped or True:
             return
         log.debug("stopping stream")
         if self.websocket is not None:
