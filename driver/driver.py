@@ -128,6 +128,7 @@ class SnakeHandler:
         self.pixel_changes_buf = deque()
         self.stream_task = None
         self.stream_done = False
+        self.stream_stopped = True
         self.websocket = None
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
@@ -142,7 +143,7 @@ class SnakeHandler:
         if self.stream_task is None:
             self.stream_task = asyncio.create_task(self.start_snake_stream())
 
-        if changes_buf_len == 0 and self.stream_done:
+        if changes_buf_len == 0 and not self.stream_stopped:
             await self.stop_snake_stream()
 
         if changes_buf_len < self.target_buffer_size:
@@ -171,17 +172,19 @@ class SnakeHandler:
             self.websocket = None
         if self.stream_task is not None:
             self.stream_task.cancel()
-            self.stream_task = None
+        self.stream_task = None
+        self.stream_stopped = True
         self.pixel_changes_buf.clear()
         self.pending_changes = 0
         display_handler.matrix.Clear()
 
 
     async def start_snake_stream(self):
+        self.stream_done = False
+        self.stream_stopped = False
         log.debug('starting stream')
         self.pixel_changes_buf.clear()
         self.pending_changes = 0
-        self.stream_done = False
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
             log.debug(f'connecting to {uri}')
