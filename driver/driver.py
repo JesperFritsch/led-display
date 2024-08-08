@@ -274,6 +274,7 @@ class SocketHandler:
                             break
 
                 except asyncio.CancelledError as e:
+                    print("Cancelled error")
                     print(e)
                 finally:
                     writer.close()
