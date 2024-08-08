@@ -20,7 +20,7 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 log = logging.getLogger(Path(__file__).stem)
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log_handler.setFormatter(formatter)
