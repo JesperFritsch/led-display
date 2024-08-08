@@ -136,6 +136,7 @@ class SnakeHandler:
     async def stop_snake_stream(self):
         print("stopping stream")
         if self.websocket is not None:
+            print("closing websocket")
             await self.websocket.close()
             self.websocket = None
         if self.stream_task is not None:
