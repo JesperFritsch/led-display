@@ -187,6 +187,7 @@ class SnakeHandler:
                             self.running = False
                             break
                         change = [((x, y), (r, g, b)) for x, y, r, g, b in struct.iter_unpack("BBBBB", data)]
+                        print(change)
                         self.pixel_changes.append(change)
                     else:
                         self.running = False
