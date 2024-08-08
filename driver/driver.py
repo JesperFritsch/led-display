@@ -386,13 +386,13 @@ class DisplayHandler:
                             await self.display_next_image()
                     elif self.mode == 'snakes':
                         print('setting pixels')
-                        if not snake_handler.running:
-                            await snake_handler.stop_snake_stream()
-                            self.matrix.Clear()
-                            snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
-                        if change := await snake_handler.get_next_change():
-                            self.set_pixels(change)
-                            await asyncio.sleep(1 / snake_handler.fps)
+                        # if not snake_handler.running:
+                        #     await snake_handler.stop_snake_stream()
+                        #     self.matrix.Clear()
+                        #     snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
+                        # if change := await snake_handler.get_next_change():
+                        #     self.set_pixels(change)
+                        #     await asyncio.sleep(1 / snake_handler.fps)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
             print("shutting down")
