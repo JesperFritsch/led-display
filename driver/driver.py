@@ -209,8 +209,7 @@ class SnakeHandler:
                     log.error(e)
                     break
 
-        except Exception as e:
-            log.error(e)
+        except asyncio.CancelledError:
             self.running = False
             return
         finally:
