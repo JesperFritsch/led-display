@@ -389,6 +389,7 @@ class DisplayHandler:
                             self.matrix.Clear()
                             snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
                         if change := await snake_handler.get_next_change():
+                            print('setting pixels')
                             self.set_pixels(change)
                             await asyncio.sleep(1 / snake_handler.fps)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
