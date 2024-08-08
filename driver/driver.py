@@ -137,7 +137,10 @@ class SnakeHandler:
         print("stopping stream")
         if self.websocket is not None:
             print("closing websocket")
-            await self.websocket.close()
+            try:
+                await self.websocket.close()
+            except Exception as e:
+                print(e)
             self.websocket = None
         if self.stream_task is not None:
             self.stream_task.cancel()
