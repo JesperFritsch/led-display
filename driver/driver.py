@@ -128,7 +128,6 @@ class SnakeHandler:
         self.pixel_changes_buf = deque()
         self.stream_task = None
         self.websocket = None
-        self.current_step = 0
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
         self.target_buffer_size = 50
@@ -137,7 +136,7 @@ class SnakeHandler:
     async def get_next_change(self):
         change = None
         changes_buf_len = len(self.pixel_changes_buf)
-        log.debug(f'current step: {self.current_step}, changes buffer len: {changes_buf_len}, requested changes: {self.requested_changes}')
+        log.debug(f'Changes buffer len: {changes_buf_len}, requested changes: {self.requested_changes}')
         if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
                 request_size = self.target_buffer_size - changes_buf_len - self.requested_changes
@@ -145,7 +144,6 @@ class SnakeHandler:
                 self.requested_changes += request_size
         if changes_buf_len > 0:
             change = self.pixel_changes_buf.popleft()
-            self.current_step += 1
         return change
 
     async def stop_snake_stream(self):
@@ -163,13 +161,11 @@ class SnakeHandler:
         self.running = False
         self.pixel_changes_buf.clear()
         self.requested_changes = 0
-        self.current_step = 0
 
     async def start_snake_stream(self):
         log.debug('starting stream')
         self.pixel_changes_buf.clear()
         self.requested_changes = 0
-        self.current_step = 0
         self.running = True
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
