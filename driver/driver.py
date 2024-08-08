@@ -9,6 +9,7 @@ import time
 import argparse
 import struct
 import logging
+from pathlib import Path
 from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import storage
@@ -17,7 +18,7 @@ from concurrent.futures import ProcessPoolExecutor
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
-log = logging.getLogger('driver')
+log = logging.getLogger(Path(__file__).stem)
 log.setLevel(logging.DEBUG)
 log_handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -135,12 +136,13 @@ class SnakeHandler:
         change = None
         changes_len = len(self.pixel_changes)
         current_future_buffer = changes_len - self.current_step
+        log.debug(f'current step: {self.current_step}, changes len: {changes_len}, current future buffer: {current_future_buffer}')
         if current_future_buffer < self.future_buffer_size:
             if self.websocket is not None:
                 await self.websocket.send(f'GET {self.future_buffer_size - current_future_buffer}')
         if self.current_step < changes_len:
-            self.current_step += 1
             change = self.pixel_changes[self.current_step]
+            self.current_step += 1
         return change
 
     async def stop_snake_stream(self):
