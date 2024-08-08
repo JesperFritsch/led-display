@@ -20,7 +20,7 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 log = logging.getLogger(Path(__file__).stem)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 log_handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log_handler.setFormatter(formatter)
@@ -311,7 +311,7 @@ class SocketHandler:
 
 class DisplayHandler:
     def __init__(self) -> None:
-        self.sleep_dur_ms = 10
+        self.sleep_dur_ms = 50
         self.display_dur_sec = 60
         self.current_image = None
         self.next_image = None
