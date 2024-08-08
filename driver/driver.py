@@ -126,8 +126,9 @@ class SnakeHandler:
         change = None
         changes_len = len(self.pixel_changes)
         current_future_buffer = changes_len - self.current_step
-        # if current_future_buffer < self.future_buffer_size:
-        #     await self.websocket.send(f'GET {self.future_buffer_size - current_future_buffer}')
+        if current_future_buffer < self.future_buffer_size:
+            if self.websocket.pong():
+                await self.websocket.send(f'GET {self.future_buffer_size - current_future_buffer}')
         if self.current_step < changes_len:
             self.current_step += 1
             change = self.pixel_changes[self.current_step]
