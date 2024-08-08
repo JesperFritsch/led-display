@@ -8,6 +8,7 @@ import random
 import time
 import argparse
 import struct
+import logging
 from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import storage
@@ -15,6 +16,14 @@ from concurrent.futures import ProcessPoolExecutor
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from PIL import Image
+
+log = logging.getLogger('driver')
+log.setLevel(logging.DEBUG)
+log_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_handler.setFormatter(formatter)
+log.addHandler(log_handler)
+
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import common_config as c_cfg
@@ -76,7 +85,7 @@ class MsgHandler:
                     try:
                         tasks.append(asyncio.create_task(self.set_handlers[key](value)))
                     except KeyError:
-                        print('Invalid message')
+                        log.debug('Invalid message')
                 await asyncio.gather(*tasks)
             elif meth_type == 'get':
                 if 'all' in msgs.keys():
@@ -135,13 +144,13 @@ class SnakeHandler:
         return change
 
     async def stop_snake_stream(self):
-        print("stopping stream")
+        log.debug("stopping stream")
         if self.websocket is not None:
-            print("closing websocket")
+            log.debug("closing websocket")
             try:
                 await self.websocket.close()
             except Exception as e:
-                print(e)
+                log.error(e)
             self.websocket = None
         if self.stream_task is not None:
             self.stream_task.cancel()
@@ -151,18 +160,18 @@ class SnakeHandler:
         self.current_step = 0
 
     async def start_snake_stream(self):
-        print('starting stream')
+        log.debug('starting stream')
         self.pixel_changes = []
         self.current_step = 0
         self.running = True
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
-            print(f'connecting to {uri}')
+            log.debug(f'connecting to {uri}')
             self.websocket = await websockets.connect(uri)
-            print('connected to stream')
+            log.debug('connected to stream')
         except Exception as e:
-            print(f'could not connect to {uri}')
-            print(e)
+            log.debug(f'could not connect to {uri}')
+            log.error(e)
             self.running = False
             return
         config = {
@@ -180,14 +189,11 @@ class SnakeHandler:
             while self.running:
                 try:
                     data = await self.websocket.recv()
-                    print("received data")
-                    print(data)
                     if data:
                         if data == 'END':
                             self.running = False
                             break
                         change = [((x, y), (r, g, b)) for x, y, r, g, b in struct.iter_unpack("BBBBB", data)]
-                        print(change)
                         self.pixel_changes.append(change)
                     else:
                         self.running = False
@@ -195,11 +201,11 @@ class SnakeHandler:
                 except websockets.exceptions.ConnectionClosed:
                     break
                 except Exception as e:
-                    print(e)
+                    log.error(e)
                     break
 
         except Exception as e:
-            print(e)
+            log.error(e)
             self.running = False
             return
         finally:
@@ -213,7 +219,7 @@ class SnakeHandler:
         try:
             self.fps = int(value) or 1
         except Exception as e:
-            print(e)
+            log.error(e)
 
     def get_fps(self):
         return self.fps
@@ -222,7 +228,7 @@ class SnakeHandler:
         try:
             self.nr_snakes = int(value)
         except Exception as e:
-            print(e)
+            log.error(e)
 
     def get_nr_snakes(self):
         return self.nr_snakes
@@ -231,7 +237,7 @@ class SnakeHandler:
         try:
             self.food_count = int(value)
         except Exception as e:
-            print(e)
+            log.error(e)
 
     def get_food_count(self):
         return self.food_count
@@ -251,15 +257,15 @@ class SocketHandler:
     async def run_loop(self):
         while True:
             try:
-                print(f"Trying to connect to socket: '{self.sock_file}'")
+                log.debug(f"Trying to connect to socket: '{self.sock_file}'")
                 reader, writer = await asyncio.open_unix_connection(self.sock_file)
                 self.connections.add((reader, writer))
-                print(f"Connected to socket: {self.sock_file}")
+                log.debug(f"Connected to socket: {self.sock_file}")
             except ConnectionRefusedError as e:
-                print(f"Socket not available: {e}")
+                log.error(f"Socket not available: {e}")
                 await asyncio.sleep(20)
             except Exception as e:
-                print(f"Error connecting: {e}")
+                log.error(f"Error connecting: {e}")
                 await asyncio.sleep(10)
             else:
                 try:
@@ -268,7 +274,7 @@ class SocketHandler:
                         if data:
                             try:
                                 msg = json.loads(data)
-                                print(msg)
+                                log.debug(msg)
                                 response = await msg_handler.handle_msg(msg)
                                 if response is not None:
                                     data_json = json.dumps(response) + '\n'
@@ -276,15 +282,16 @@ class SocketHandler:
                                     writer.write(data)
                                     await writer.drain()
                             except Exception as e:
-                                print('Some shit happened: ', e)
-                                print(response)
+                                log.error('Some shit happened: ', e)
+                                log.debug(response)
                         else:
-                            print('Connection closed')
+                            log.debug('Connection closed')
                             break
 
                 except asyncio.CancelledError as e:
-                    print("Cancelled error")
-                    print(e)
+                    log.error("Cancelled error")
+                    log.error("TRACE", exc_info=True)
+
                 finally:
                     writer.close()
                     await writer.wait_closed()
@@ -353,7 +360,7 @@ class DisplayHandler:
         try:
             value = bool(value)
         except Exception as e:
-            print(e)
+            log.error(e)
         if value is False:
             self.matrix.Clear()
             self.display_is_on = False
@@ -369,7 +376,7 @@ class DisplayHandler:
         try:
             self.matrix.brightness = int(value)
         except Exception as e:
-            print(e)
+            log.error(e)
         if self.mode == 'images':
             await self.refresh()
 
@@ -380,7 +387,7 @@ class DisplayHandler:
         try:
             self.display_dur_sec = int(value)
         except Exception as e:
-            print(e)
+            log.error(e)
 
     def get_display_dur(self):
         return self.display_dur_sec
@@ -403,7 +410,7 @@ class DisplayHandler:
                             await asyncio.sleep(1 / snake_handler.fps)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
-            print("shutting down")
+            log.info("shutting down")
             global listener
             listener.close()
             sys.exit(0)
