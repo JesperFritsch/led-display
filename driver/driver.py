@@ -10,6 +10,7 @@ import argparse
 import struct
 import logging
 from pathlib import Path
+from collections import deque
 from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import storage
@@ -124,24 +125,26 @@ class SnakeHandler:
         self.snakes = []
         self.fps = 10
         self.running = False
-        self.pixel_changes = []
+        self.pixel_changes_buf = deque()
         self.stream_task = None
         self.websocket = None
         self.current_step = 0
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
-        self.future_buffer_size = 10
+        self.target_buffer_size = 50
+        self.requested_changes = 0
 
     async def get_next_change(self):
         change = None
-        changes_len = len(self.pixel_changes)
-        current_future_buffer = changes_len - self.current_step
-        log.debug(f'current step: {self.current_step}, changes len: {changes_len}, current future buffer: {current_future_buffer}')
-        if current_future_buffer < self.future_buffer_size:
+        changes_buf_len = len(self.pixel_changes_buf)
+        log.debug(f'current step: {self.current_step}, changes buffer len: {changes_buf_len}, requested changes: {self.requested_changes}')
+        if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
-                await self.websocket.send(f'GET {self.future_buffer_size - current_future_buffer}')
-        if self.current_step < changes_len:
-            change = self.pixel_changes[self.current_step]
+                request_size = self.target_buffer_size - changes_buf_len
+                await self.websocket.send(f'GET {request_size}')
+                self.requested_changes += request_size
+        if self.current_step < changes_buf_len:
+            change = self.pixel_changes_buf.popleft()
             self.current_step += 1
         return change
 
@@ -158,12 +161,14 @@ class SnakeHandler:
             self.stream_task.cancel()
             self.stream_task = None
         self.running = False
-        self.pixel_changes = []
+        self.pixel_changes_buf.clear()
+        self.requested_changes = 0
         self.current_step = 0
 
     async def start_snake_stream(self):
         log.debug('starting stream')
-        self.pixel_changes = []
+        self.pixel_changes_buf.clear()
+        self.requested_changes = 0
         self.current_step = 0
         self.running = True
         try:
@@ -177,6 +182,7 @@ class SnakeHandler:
             self.running = False
             return
         config = {
+            "calc_timeout": 4000,
             "grid_width": 32,
             "grid_height": 32,
             "food_count": self.food_count,
@@ -196,7 +202,8 @@ class SnakeHandler:
                             self.running = False
                             break
                         change = [((x, y), (r, g, b)) for x, y, r, g, b in struct.iter_unpack("BBBBB", data)]
-                        self.pixel_changes.append(change)
+                        self.pixel_changes_buf.append(change)
+                        self.requested_changes -= 1
                     else:
                         self.running = False
                         break
