@@ -140,7 +140,11 @@ class SnakeHandler:
             if self.websocket is not None:
                 request_size = self.target_buffer_size - changes_buf_len - self.pending_changes
                 self.pending_changes += request_size
-                await self.websocket.send(f'GET {request_size}')
+                try:
+                    await self.websocket.send(f'GET {request_size}')
+                except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedOK):
+                    log.debug('Connection closed')
+                    return None
         log.debug(f'Changes buffer len: {changes_buf_len}, pending changes: {self.pending_changes}')
         if changes_buf_len > 0:
             change = self.pixel_changes_buf.popleft()
@@ -203,7 +207,7 @@ class SnakeHandler:
                     else:
                         self.running = False
                         break
-                except websockets.exceptions.ConnectionClosed:
+                except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedOK):
                     break
                 except Exception as e:
                     log.error(e)
@@ -513,12 +517,17 @@ async def main():
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
     handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
     listener = slideshow_ref.listen(lambda event: newImageEvent(loop, new_image_queue, event))
-    await asyncio.gather(
-        socket_loop_task,
-        display_loop_task,
-        scan_dir_task,
-        handleNewImage_task
-    )
+    try:
+        await asyncio.gather(
+            socket_loop_task,
+            display_loop_task,
+            scan_dir_task,
+            handleNewImage_task
+        )
+    except Exception as e:
+        log.error(f"Error in main: {e}")
+        log.debug("TRACE", exc_info=True)
+        listener.close()
 
 async def handleNewImage(new_image_queue):
     while True:
