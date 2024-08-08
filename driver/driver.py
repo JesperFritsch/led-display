@@ -173,7 +173,6 @@ class SnakeHandler:
             "data_on_demand": True
         }
         try:
-            await self.websocket.close()
             await self.websocket.send(json.dumps(config))
             ack = await self.websocket.recv() # get the ok from the server
             init_data = await self.websocket.recv() # get the initialization data
@@ -198,6 +197,7 @@ class SnakeHandler:
                     break
 
         except Exception as e:
+            print("piss")
             print(e)
             self.running = False
             return
