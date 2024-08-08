@@ -120,6 +120,17 @@ class SnakeHandler:
         self.current_step = 0
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
+        self.future_buffer_size = 10
+
+    async def get_next_change(self):
+        change = None
+        current_future_buffer = len(self.pixel_changes) - self.current_step
+        if current_future_buffer < self.future_buffer_size:
+            await self.websocket.send(f'GET {self.future_buffer_size - current_future_buffer}')
+        if self.current_step < len(self.pixel_changes):
+            self.current_step += 1
+            change = self.pixel_changes[self.current_step]
+        return change
 
     async def stop_snake_stream(self):
         if self.websocket is not None:
@@ -150,7 +161,8 @@ class SnakeHandler:
             "grid_height": 32,
             "food_count": self.food_count,
             "nr_of_snakes": self.nr_snakes,
-            "data_mode": "pixel_data"
+            "data_mode": "pixel_data",
+            "data_on_demand": True
         }
         try:
             await self.websocket.send(json.dumps(config))
@@ -173,7 +185,7 @@ class SnakeHandler:
                 except Exception as e:
                     print(e)
                     break
-                await asyncio.sleep(0.005)
+
         except Exception as e:
             print(e)
             self.running = False
@@ -184,8 +196,7 @@ class SnakeHandler:
 
     async def restart(self, value):
         await self.stop_snake_stream()
-        self.pixel_changes = []
-        self.current_step = 0
+        self.running = False
 
     async def set_fps(self, value):
         try:
@@ -375,9 +386,8 @@ class DisplayHandler:
                             await snake_handler.stop_snake_stream()
                             self.matrix.Clear()
                             snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
-                        if snake_handler.current_step < len(snake_handler.pixel_changes):
-                            self.set_pixels(snake_handler.pixel_changes[snake_handler.current_step])
-                            snake_handler.current_step += 1
+                        if change := await snake_handler.get_next_change():
+                            self.set_pixels(change)
                             await asyncio.sleep(1 / snake_handler.fps)
                 await asyncio.sleep(self.sleep_dur_ms / 1000)
         except KeyboardInterrupt:
@@ -530,7 +540,7 @@ if __name__ == '__main__':
     msg_handler.add_handlers('image_dir', getter=image_handler.get_image_dir)
     msg_handler.add_handlers('images', getter=image_handler.get_image_names)
     msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
-    msg_handler.add_handlers('food_count', snake_handler.set_food_count, snake_handler.get_food_count)
+    msg_handler.add_handlers('food', snake_handler.set_food_count, snake_handler.get_food_count)
     msg_handler.add_handlers('snakes_fps', snake_handler.set_fps, snake_handler.get_fps)
     msg_handler.add_handlers('restart_snakes', setter=snake_handler.restart)
 
