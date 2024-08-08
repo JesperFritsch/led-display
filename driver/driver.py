@@ -140,10 +140,10 @@ class SnakeHandler:
         log.debug(f'current step: {self.current_step}, changes buffer len: {changes_buf_len}, requested changes: {self.requested_changes}')
         if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
-                request_size = self.target_buffer_size - changes_buf_len
+                request_size = self.target_buffer_size - changes_buf_len - self.requested_changes
                 await self.websocket.send(f'GET {request_size}')
                 self.requested_changes += request_size
-        if self.current_step < changes_buf_len:
+        if changes_buf_len > 0:
             change = self.pixel_changes_buf.popleft()
             self.current_step += 1
         return change
