@@ -124,9 +124,9 @@ class SnakeHandler:
         self.food_count = 15
         self.snakes = []
         self.fps = 10
-        self.running = False
         self.pixel_changes_buf = deque()
         self.stream_task = None
+        self.stream_done = False
         self.websocket = None
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
@@ -137,6 +137,13 @@ class SnakeHandler:
     async def get_next_change(self):
         change = None
         changes_buf_len = len(self.pixel_changes_buf)
+        # If we are not fetching data and the buffer is empty, start the stream
+        if self.stream_task is None:
+            self.stream_task = asyncio.create_task(self.start_snake_stream())
+
+        if changes_buf_len == 0 and self.stream_done:
+            await self.stop_snake_stream()
+
         if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
                 request_size = self.target_buffer_size - changes_buf_len - self.pending_changes
@@ -164,15 +171,15 @@ class SnakeHandler:
         if self.stream_task is not None:
             self.stream_task.cancel()
             self.stream_task = None
-        self.running = False
         self.pixel_changes_buf.clear()
         self.pending_changes = 0
+
 
     async def start_snake_stream(self):
         log.debug('starting stream')
         self.pixel_changes_buf.clear()
         self.pending_changes = 0
-        self.running = True
+        self.stream_done = False
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
             log.debug(f'connecting to {uri}')
@@ -181,10 +188,9 @@ class SnakeHandler:
         except Exception as e:
             log.debug(f'could not connect to {uri}')
             log.error(e)
-            self.running = False
             return
         config = {
-            "calc_timeout": 4000,
+            "calc_timeout": 2500,
             "grid_width": 32,
             "grid_height": 32,
             "food_count": self.food_count,
@@ -196,18 +202,16 @@ class SnakeHandler:
             await self.websocket.send(json.dumps(config))
             ack = await self.websocket.recv() # get the ok from the server
             init_data = await self.websocket.recv() # get the initialization data
-            while self.running:
+            while True:
                 try:
                     data = await self.websocket.recv()
                     if data:
                         if data == 'END':
-                            self.running = False
                             break
                         change = [((x, y), (r, g, b)) for x, y, r, g, b in struct.iter_unpack("BBBBB", data)]
                         self.pixel_changes_buf.append(change)
                         self.pending_changes -= 1
                     else:
-                        self.running = False
                         break
                 except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedOK):
                     break
@@ -216,11 +220,11 @@ class SnakeHandler:
                     break
 
         except asyncio.CancelledError:
-            self.running = False
             return
         finally:
             if self.websocket is not None:
                 await self.websocket.close()
+            self.stream_done = True
 
     async def restart(self, value):
         log.debug("restarting snakes")
@@ -412,10 +416,6 @@ class DisplayHandler:
                         if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
                             await self.display_next_image()
                     elif self.mode == 'snakes':
-                        if not snake_handler.running:
-                            await snake_handler.stop_snake_stream()
-                            self.matrix.Clear()
-                            snake_handler.stream_task = asyncio.create_task(snake_handler.start_snake_stream())
                         if change := await snake_handler.get_next_change():
                             self.set_pixels(change)
                             await asyncio.sleep(1 / snake_handler.fps)
