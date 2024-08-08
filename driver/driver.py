@@ -173,6 +173,7 @@ class SnakeHandler:
             "data_on_demand": True
         }
         try:
+            await self.websocket.close()
             await self.websocket.send(json.dumps(config))
             ack = await self.websocket.recv() # get the ok from the server
             init_data = await self.websocket.recv() # get the initialization data
@@ -392,7 +393,6 @@ class DisplayHandler:
                         if (time.time() * 1000) - self.switch_time  >= (self.display_dur_sec * 1000):
                             await self.display_next_image()
                     elif self.mode == 'snakes':
-                        print('setting pixels')
                         if not snake_handler.running:
                             await snake_handler.stop_snake_stream()
                             self.matrix.Clear()
