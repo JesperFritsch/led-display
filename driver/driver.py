@@ -124,10 +124,11 @@ class SnakeHandler:
 
     async def get_next_change(self):
         change = None
-        current_future_buffer = len(self.pixel_changes) - self.current_step
+        changes_len = len(self.pixel_changes)
+        current_future_buffer = changes_len - self.current_step
         if current_future_buffer < self.future_buffer_size:
             await self.websocket.send(f'GET {self.future_buffer_size - current_future_buffer}')
-        if self.current_step < len(self.pixel_changes):
+        if self.current_step < changes_len:
             self.current_step += 1
             change = self.pixel_changes[self.current_step]
         return change
@@ -150,6 +151,7 @@ class SnakeHandler:
         self.running = True
         try:
             uri = f"{self.stream_host}:{self.stream_port}/ws"
+            print(f'connecting to {uri}')
             self.websocket = await websockets.connect(uri)
             print('connected to stream')
         except Exception as e:
@@ -197,7 +199,6 @@ class SnakeHandler:
 
     async def restart(self, value):
         await self.stop_snake_stream()
-        self.running = False
 
     async def set_fps(self, value):
         try:
