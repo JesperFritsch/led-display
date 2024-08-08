@@ -140,9 +140,9 @@ class SnakeHandler:
         if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
                 request_size = self.target_buffer_size - changes_buf_len - self.pending_changes
-                self.pending_changes += request_size
                 try:
                     if request_size >= self.min_request_size:
+                        self.pending_changes += request_size
                         await self.websocket.send(f'GET {request_size}')
                 except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedOK):
                     log.debug('Connection closed')
