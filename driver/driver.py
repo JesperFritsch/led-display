@@ -273,8 +273,8 @@ class SocketHandler:
                             print('Connection closed')
                             break
 
-                except asyncio.CancelledError:
-                    pass
+                except asyncio.CancelledError as e:
+                    print(e)
                 finally:
                     writer.close()
                     await writer.wait_closed()
