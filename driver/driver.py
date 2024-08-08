@@ -136,12 +136,12 @@ class SnakeHandler:
     async def get_next_change(self):
         change = None
         changes_buf_len = len(self.pixel_changes_buf)
-        log.debug(f'Changes buffer len: {changes_buf_len}, pending changes: {self.pending_changes}')
         if changes_buf_len < self.target_buffer_size:
             if self.websocket is not None:
                 request_size = self.target_buffer_size - changes_buf_len - self.pending_changes
-                await self.websocket.send(f'GET {request_size}')
                 self.pending_changes += request_size
+                await self.websocket.send(f'GET {request_size}')
+        log.debug(f'Changes buffer len: {changes_buf_len}, pending changes: {self.pending_changes}')
         if changes_buf_len > 0:
             change = self.pixel_changes_buf.popleft()
         return change
@@ -218,6 +218,7 @@ class SnakeHandler:
                 await self.websocket.close()
 
     async def restart(self, value):
+        log.debug("restarting snakes")
         await self.stop_snake_stream()
 
     async def set_fps(self, value):
