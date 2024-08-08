@@ -130,7 +130,8 @@ class SnakeHandler:
         self.websocket = None
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
-        self.target_buffer_size = 50
+        self.target_buffer_size = 100
+        self.min_request_size = 20
         self.pending_changes = 0
 
     async def get_next_change(self):
@@ -141,7 +142,8 @@ class SnakeHandler:
                 request_size = self.target_buffer_size - changes_buf_len - self.pending_changes
                 self.pending_changes += request_size
                 try:
-                    await self.websocket.send(f'GET {request_size}')
+                    if request_size >= self.min_request_size:
+                        await self.websocket.send(f'GET {request_size}')
                 except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedOK):
                     log.debug('Connection closed')
                     return None
