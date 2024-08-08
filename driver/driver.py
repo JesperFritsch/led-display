@@ -144,6 +144,7 @@ class SnakeHandler:
         self.current_step = 0
 
     async def start_snake_stream(self):
+        print('starting stream')
         self.pixel_changes = []
         self.current_step = 0
         self.running = True
