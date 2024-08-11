@@ -9,7 +9,6 @@ import time
 import argparse
 import struct
 import logging
-from snake_sim.snake_env import SnakeEnv
 from pathlib import Path
 from collections import deque
 from firebase_admin import credentials
@@ -136,11 +135,14 @@ class SnakeHandler:
         self.min_request_size = 2
         self.pending_changes = 0
 
-    def load_map(self, map_array):
-        r, g, b = SnakeEnv.COLOR_MAPPING[SnakeEnv.BLOCKED_TILE]
-        for y, row in enumerate(map_array):
+    def load_map(self, init_data):
+        blocked_value = init_data['blocked_value']
+        base_map = init_data['base_map']
+        color_map = init_data['color_mapping']
+        r, g, b = color_map[blocked_value]
+        for y, row in enumerate(base_map):
             for x, pixel in enumerate(row):
-                if pixel == SnakeEnv.BLOCKED_TILE:
+                if pixel == blocked_value:
                     display_handler.matrix.SetPixel(x, y, r, g, b)
 
 
@@ -214,7 +216,8 @@ class SnakeHandler:
         try:
             await self.websocket.send(json.dumps(config))
             ack = await self.websocket.recv() # get the ok from the server
-            init_data = await self.websocket.recv() # get the initialization data
+            init_data = json.loads(await self.websocket.recv()) # get the initialization data
+            self.load_map(init_data)
             while True:
                 try:
                     data = await self.websocket.recv()
