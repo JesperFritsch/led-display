@@ -20,7 +20,7 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 log = logging.getLogger(Path(__file__).stem)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.ERROR)
 log_handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log_handler.setFormatter(formatter)
@@ -144,17 +144,20 @@ class SnakeHandler:
         r, g, b = color_map[str(blocked_value)]
         neighbors = ((0, 1), (1, 0), (0, -1), (-1, 0))
         already_set = [False] * height * width
-        for y, row in enumerate(base_map):
-            e_y = y * 2
-            for x, pixel in enumerate(row):
-                e_x = x * 2
-                if pixel == blocked_value:
-                    display_handler.matrix.SetPixel(e_x, e_y, r, g, b)
-                    #fill in the gaps
-                    for dx, dy in neighbors:
-                        if base_map[y + dy][x + dx] == blocked_value and not already_set[(y + dy) * width + x + dx]:
-                            already_set[(y + dy) * width + x + dx] = True
-                            display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
+        try:
+            for y, row in enumerate(base_map):
+                e_y = y * 2
+                for x, pixel in enumerate(row):
+                    e_x = x * 2
+                    if pixel == blocked_value:
+                        display_handler.matrix.SetPixel(e_x, e_y, r, g, b)
+                        #fill in the gaps
+                        for dx, dy in neighbors:
+                            if base_map[y + dy][x + dx] == blocked_value and not already_set[(y + dy) * width + x + dx]:
+                                already_set[(y + dy) * width + x + dx] = True
+                                display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
+        except Exception as e:
+            log.error(e)
 
     async def get_next_change(self):
         change = None
