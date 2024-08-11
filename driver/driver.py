@@ -140,13 +140,17 @@ class SnakeHandler:
         base_map = init_data['base_map']
         color_map = init_data['color_mapping']
         r, g, b = color_map[str(blocked_value)]
+        neighbors = ((0, 1), (1, 0), (0, -1), (-1, 0))
         for y, row in enumerate(base_map):
-            y *= 2
+            e_y = y * 2
             for x, pixel in enumerate(row):
-                x *= 2
+                e_x = x * 2
                 if pixel == blocked_value:
-                    display_handler.matrix.SetPixel(x, y, r, g, b)
-
+                    display_handler.matrix.SetPixel(e_x, e_y, r, g, b)
+                #fill in the gaps
+                for dx, dy in neighbors:
+                    if base_map[y + dy][x + dx] == blocked_value:
+                        display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
 
     async def get_next_change(self):
         change = None
