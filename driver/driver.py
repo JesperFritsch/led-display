@@ -141,7 +141,9 @@ class SnakeHandler:
         color_map = init_data['color_mapping']
         r, g, b = color_map[str(blocked_value)]
         for y, row in enumerate(base_map):
+            y *= 2
             for x, pixel in enumerate(row):
+                x *= 2
                 if pixel == blocked_value:
                     display_handler.matrix.SetPixel(x, y, r, g, b)
 
