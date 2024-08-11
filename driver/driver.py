@@ -9,6 +9,7 @@ import time
 import argparse
 import struct
 import logging
+from snake_sim.snake_env import SnakeEnv
 from pathlib import Path
 from collections import deque
 from firebase_admin import credentials
@@ -134,6 +135,14 @@ class SnakeHandler:
         self.target_buffer_size = 100
         self.min_request_size = 2
         self.pending_changes = 0
+
+    def load_map(self, map_array):
+        r, g, b = SnakeEnv.COLOR_MAPPING[SnakeEnv.BLOCKED_TILE]
+        for y, row in enumerate(map_array):
+            for x, pixel in enumerate(row):
+                if pixel == SnakeEnv.BLOCKED_TILE:
+                    display_handler.matrix.SetPixel(x, y, r, g, b)
+
 
     async def get_next_change(self):
         change = None
