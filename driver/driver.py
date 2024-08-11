@@ -139,7 +139,7 @@ class SnakeHandler:
         blocked_value = init_data['blocked_value']
         base_map = init_data['base_map']
         color_map = init_data['color_mapping']
-        r, g, b = color_map[blocked_value]
+        r, g, b = color_map[str(blocked_value)]
         for y, row in enumerate(base_map):
             for x, pixel in enumerate(row):
                 if pixel == blocked_value:
