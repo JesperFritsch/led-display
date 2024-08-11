@@ -132,7 +132,7 @@ class SnakeHandler:
         self.stream_host = "ws://homeserver" # stationary pc
         self.stream_port = 42069
         self.target_buffer_size = 100
-        self.min_request_size = 20
+        self.min_request_size = 2
         self.pending_changes = 0
 
     async def get_next_change(self):
