@@ -147,10 +147,10 @@ class SnakeHandler:
                 e_x = x * 2
                 if pixel == blocked_value:
                     display_handler.matrix.SetPixel(e_x, e_y, r, g, b)
-                #fill in the gaps
-                for dx, dy in neighbors:
-                    if base_map[y + dy][x + dx] == blocked_value:
-                        display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
+                    #fill in the gaps
+                    for dx, dy in neighbors:
+                        if base_map[y + dy][x + dx] == blocked_value:
+                            display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
 
     async def get_next_change(self):
         change = None
