@@ -199,7 +199,8 @@ class SnakeHandler:
             "food_count": self.food_count,
             "nr_of_snakes": self.nr_snakes,
             "data_mode": "pixel_data",
-            "data_on_demand": True
+            "data_on_demand": True,
+            "map": "comps"
         }
         try:
             await self.websocket.send(json.dumps(config))
