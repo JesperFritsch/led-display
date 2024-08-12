@@ -51,6 +51,31 @@ const inputField = defineComponent({
     }
 });
 
+const inputRange = defineComponent({
+    template: "#input-range-template",
+    props:{
+        label: String,
+        param: String,
+        min: Number,
+        max: Number,
+        step: Number,
+    },
+    setup(props){
+        const rangeValue = ref(props.modelValue || 0);
+        function onChange(){
+            console.log(rangeValue.value);
+            screenManager.set(props.param, rangeValue.value);
+        }
+        watch(() => screenParams[props.param], (newVal, oldVal) => {
+            rangeValue.value = newVal;
+        });
+        return {
+            onChange,
+            rangeValue
+        }
+    }
+});
+
 const customCheckbox = defineComponent({
     template: '#checkbox-template',
     props: {
@@ -85,6 +110,25 @@ const cmdButton = defineComponent({
         }
         return {
             onClick
+        }
+    }
+});
+
+const toggleButton = defineComponent({
+    template: '#toggle-btn-template',
+    props: {
+        label: String,
+        param: String
+    },
+    setup(props){
+        const toggled = ref(false);
+        function toggle(){
+            toggled.value = !toggled.value;
+            screenManager.set(props.param, toggled.value);
+        }
+        return {
+            toggle,
+            toggled
         }
     }
 });
@@ -131,6 +175,28 @@ const radioButton = defineComponent({
     }
 });
 
+const radioGroup = defineComponent({
+    template: '#radio-group-template',
+    components: {
+        'radio-btn': radioButton
+    },
+    props: {
+        groupName: String,
+        options: Array
+    },
+    setup(props){
+        const groupName = props.groupName;
+        const options = ref(props.options)
+        watch(() => props.options, (newVal) => {
+            options.value = newVal;
+        }, { immediate: true, deep: true });
+        return {
+            groupName,
+            options
+        };
+    }
+});
+
 const app = defineComponent({
     template: '#app-template',
     components: {
@@ -138,7 +204,10 @@ const app = defineComponent({
         'input-field': inputField,
         'image-btn': imageButton,
         'cmd-btn': cmdButton,
-        'radio-btn': radioButton
+        'toggle-btn': toggleButton,
+        'radio-btn': radioButton,
+        'radio-group': radioGroup,
+        'input-range': inputRange
     },
     setup(){
         return {screenParams}

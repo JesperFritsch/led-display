@@ -19,12 +19,12 @@
 
     <script type="text/x-template" id="app-template">
         <div>
-            <custom-checkbox label='Display on' param='display_on' />
-            <input-field label='Brightness' param='brightness' />
+            <toggle-btn label='Power' param='display_on'/>
+            <input-range label='Brightness' param='brightness' :min="0" :max="100" :step="1" />
         </div>
         <div id="mode-options">
             <p>Mode options</p>
-            <radio-btn v-for="mode of screenParams.display_modes" :label="mode" :param="mode" group="display_mode" />
+            <radio-group :options="screenParams.display_modes" groupName="display_mode" />
         </div>
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -50,33 +50,30 @@
 
     <script type="text/x-template" id="input-field-template">
         <div>
-            <label for="input-{{ param }}"> {{ label }}
+            <label :for="'input-' + param "> {{ label }}
                 <input
                 @change.prevent=onChange
                 type="text"
                 class="input-field"
-                id="input-{{ param }}"
+                :id="'input-' + param"
                 v-model='textValue'>
             </label>
         </div>
     </script>
 
-    <script type="text/x-template" id="snakes-template">
-        <input-field label='Nr of snakes' param='nr_snakes' />
-        <input-field label='Food count' param='food' />
-        <input-field label='Snakes FPS' param='snakes_fps' />
-        <cmd-btn label='Restart snakes' cmd='restart_snakes' />
-        <div id="mode-options">
-            <p>Mode options</p>
-            <radio-btn v-for="mode of screenParams.display_modes" :label="mode" :param="mode" group="display_mode" />
-        </div>
-    </script>
-
-    <script type="text/x-template" id="images-template">
-        <input-field label='Display duration sec' param='display_dur' />
-        <div id="img-container">
-            <image-btn v-for="img_name of screenParams.images" :img_name="img_name" />
-        </div>
+    <script type="text/x-template" id="input-range-template">
+        <label
+            :for="'range-' + param"
+            class="form-label">{{label}}</label>
+        <input
+            type="range"
+            class="form-range custom-responsive-range"
+            :min="min"
+            :max="max"
+            :step="step"
+            :id="'range-' + param"
+            v-model='rangeValue'
+            @change.prevent=onChange>
     </script>
 
     <script type="text/x-template" id="checkbox-template">
@@ -103,14 +100,24 @@
 
     <script type="text/x-template" id="radio-btn-template">
         <div>
-            <label for="radio-{{ param }}"> {{ label }}
-                <input
+            <input
                 type="radio"
-                name="{{ group }}"
-                id="radio-{{ param }}"
+                class="btn-check"
+                :name="group"
+                :id="'radio-' + param "
+                autocomplete="off"
                 @change.prevent="onChange"
                 :checked="checked">
+            <label
+                class="btn btn-outline-light"
+                :for="'radio-' + param"> {{ label }}
             </label>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="radio-group-template">
+        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+            <radio-btn v-for="mode of options" :label="mode" :param="mode" :group="groupName" />
         </div>
     </script>
 
@@ -118,9 +125,20 @@
         <div>
             <button
             @click.prevent="onClick"
-            class='cmd-btn'>
+            class='btn btn-light'>
                 {{ label }}
             </button>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="toggle-btn-template">
+        <div>
+            <button
+            type="button"
+            class="btn"
+            :class="{'btn-light': toggled, 'btn-secondary': !toggled}"
+            @click.prevent="toggle"
+            autocomplete="off"> {{ label }} </button>
         </div>
     </script>
 

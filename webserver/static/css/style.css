@@ -22,3 +22,49 @@ body{
     image-rendering: pixelated;
     justify-self: center;
 }
+
+.nav-link {
+    color: #ffffff; /* Active text color */
+    background-color: #000000; /* Active background color */
+}
+.nav-link.active {
+    color: #b8b8b8; /* Default text color */
+    background-color: #000000; /* Default background color */
+}
+.nav-link:hover {
+    color: #000000; /* Hover text color */
+    background-color: #ffffff; /* Hover background color */
+}
+
+/* Remove the default focus outline */
+.btn:focus,
+.btn:active,
+.btn:focus,
+.btn:active {
+    box-shadow: none;
+    outline: none;
+}
+
+/* Additional styles to ensure consistency */
+.btn {
+    box-shadow: none;
+    outline: none;
+}
+
+.custom-responsive-range {
+    /* Removing the default 100% width */
+    width: 100%; /* Adjust this based on your need */
+  }
+
+  /* Media queries to adjust the slider's width at different breakpoints */
+  @media (min-width: 768px) {
+    .custom-responsive-range {
+      width: 50%; /* 50% width for medium screens */
+    }
+  }
+
+  @media (min-width: 992px) {
+    .custom-responsive-range {
+      width: 25%; /* 25% width for large screens */
+    }
+  }
