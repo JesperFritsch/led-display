@@ -376,6 +376,8 @@ if __name__ == '__main__':
     msg_handler.add_handlers('display_modes', getter=get_modes)
     msg_handler.add_handlers('display_mode', fake_setter, lambda: 'snakes')
     msg_handler.add_handlers('nr_snakes', fake_setter, lambda: 20)
+    msg_handler.add_handlers('snake_maps', fake_setter, lambda: ['map1', 'map2'])
+    msg_handler.add_handlers('snake_map', fake_setter, lambda: 'map1')
 
     listener = None
 
