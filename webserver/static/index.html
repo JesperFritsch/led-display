@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
         <link rel="stylesheet" href="/static/css/style.css">
         <script type="importmap">
             {
@@ -12,29 +13,42 @@
     </head>
     <body>
         <div id="app"></div>
+        <!-- Include Bootstrap JS -->
+        <script src="/static/bootstrap/js/bootstrap.bundle.min.js"></script>
     </body>
 
     <script type="text/x-template" id="app-template">
         <div>
             <custom-checkbox label='Display on' param='display_on' />
-            <input-field label='Display duration sec' param='display_dur' />
             <input-field label='Brightness' param='brightness' />
-            <custom-checkbox label='Run snakes' param='run_snakes' />
-            <input-field label='Nr of snakes' param='nr_snakes' />
-            <input-field label='Food count' param='food' />
-            <input-field label='Snakes FPS' param='snakes_fps' />
-            <cmd-btn label='Restart snakes' cmd='restart_snakes' />
-            <div id="mode-options">
-                <p>Mode options</p>
-                <radio-btn v-for="mode of screenParams.display_modes" :label="mode" :param="mode" group="display_mode" />
+        </div>
+        <div id="mode-options">
+            <p>Mode options</p>
+            <radio-btn v-for="mode of screenParams.display_modes" :label="mode" :param="mode" group="display_mode" />
+        </div>
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+              <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-snakes" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Snakes</button>
+              <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-images" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Images</button>
             </div>
-            <div id="img-container">
-                <image-btn v-for="img_name of screenParams.images" :img_name="img_name" />
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-snakes" role="tabpanel" aria-labelledby="nav-home-tab">
+                <input-field label='Nr of snakes' param='nr_snakes' />
+                <input-field label='Food count' param='food' />
+                <input-field label='Snakes FPS' param='snakes_fps' />
+                <cmd-btn label='Restart snakes' cmd='restart_snakes' />
+            </div>
+            <div class="tab-pane fade" id="nav-images" role="tabpanel" aria-labelledby="nav-profile-tab">
+                <input-field label='Display duration sec' param='display_dur' />
+                <div id="img-container">
+                    <image-btn v-for="img_name of screenParams.images" :img_name="img_name" />
+                </div>
             </div>
         </div>
     </script>
 
-    <script type="text/x-template" id="input-field">
+    <script type="text/x-template" id="input-field-template">
         <div>
             <label for="input-{{ param }}"> {{ label }}
                 <input
@@ -44,6 +58,24 @@
                 id="input-{{ param }}"
                 v-model='textValue'>
             </label>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="snakes-template">
+        <input-field label='Nr of snakes' param='nr_snakes' />
+        <input-field label='Food count' param='food' />
+        <input-field label='Snakes FPS' param='snakes_fps' />
+        <cmd-btn label='Restart snakes' cmd='restart_snakes' />
+        <div id="mode-options">
+            <p>Mode options</p>
+            <radio-btn v-for="mode of screenParams.display_modes" :label="mode" :param="mode" group="display_mode" />
+        </div>
+    </script>
+
+    <script type="text/x-template" id="images-template">
+        <input-field label='Display duration sec' param='display_dur' />
+        <div id="img-container">
+            <image-btn v-for="img_name of screenParams.images" :img_name="img_name" />
         </div>
     </script>
 

@@ -11,15 +11,15 @@ import {
     onMounted } from 'vue';
 
 const screenManager = new ScreenManager();
-// const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
-const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
+const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
+// const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
     display_on: true,
     brightness: 0,
     display_dur: 20,
     images: [],
-    display_mode: 'images',
+    display_mode: null,
     display_modes: [],
     run_snakes: false,
     nr_snakes: 7,
@@ -28,7 +28,7 @@ const screenParams = reactive({
 })
 
 const inputField = defineComponent({
-    template: "#input-field",
+    template: "#input-field-template",
     props:{
         label: String,
         param: String
@@ -118,13 +118,16 @@ const radioButton = defineComponent({
         function onChange(){
             screenManager.set(props.group, props.param);
         }
-        watch(() => screenParams[props.param], (newVal, oldVal) => {
+        watch(() => screenParams[props.group], (newVal, oldVal) => {
             checked.value = newVal === props.param;
         })
         return {
             onChange,
             checked
         }
+    },
+    mounted(){
+        this.checked = screenParams[this.group] === this.param;
     }
 });
 
