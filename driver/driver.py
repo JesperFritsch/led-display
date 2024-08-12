@@ -9,6 +9,7 @@ import time
 import argparse
 import struct
 import logging
+import aiohttp
 from pathlib import Path
 from collections import deque
 from firebase_admin import credentials
@@ -76,6 +77,13 @@ class MsgHandler:
 
     async def send_update(self, *msg_keys):
         message = {key: self.get_handlers[key]() for key in msg_keys}
+        for key in msg_keys:
+            try:
+                val = self.get_handlers[key]()
+            except KeyError:
+                val = None
+                log.debug(f'Invalid message: "{key}"')
+            message[key] = val
         await socket_handler.send_message(message)
 
     async def handle_msg(self, payload):
@@ -87,7 +95,7 @@ class MsgHandler:
                     try:
                         tasks.append(asyncio.create_task(self.set_handlers[key](value)))
                     except KeyError:
-                        log.debug('Invalid message')
+                        log.debug(f'Invalid message: "{key}"')
                 await asyncio.gather(*tasks)
             elif meth_type == 'get':
                 if 'all' in msgs.keys():
@@ -99,6 +107,9 @@ class MsgHandler:
                             get_value = self.get_handlers[get_key](val)
                         except TypeError:
                             get_value = self.get_handlers[get_key]()
+                        except KeyError:
+                            get_value = None
+                            log.debug(f'Invalid message: "{key}"')
                     message[get_key] = get_value
         return message
 
@@ -124,16 +135,43 @@ class SnakeHandler:
         self.food_count = 15
         self.snakes = []
         self.fps = 10
+        self.map = None
+        self.available_maps = []
         self.last_step_time = 0
         self.pixel_changes_buf = deque()
         self.stream_task = None
         self.stream_done = False
         self.websocket = None
-        self.stream_host = "ws://homeserver" # stationary pc
+        self.remote_host_name = "homeserver" # stationary pc
+        self.stream_protocol = "ws" # stationary pc
         self.stream_port = 42069
         self.target_buffer_size = 100
         self.min_request_size = 2
         self.pending_changes = 0
+
+    async def set_map(self, value):
+        try:
+            self.map = value
+        except Exception as e:
+            log.error(e)
+
+    def get_map(self):
+        return self.map
+
+    def get_maps(self):
+        return self.available_maps
+
+    async def fetch_available_maps(self):
+        try:
+            async with aiohttp.ClientSession() as session:
+                params = {'conf': 'maps'}
+                async with session.get(f'https://{self.remote_host_name}:{self.stream_port}/api/config_data', params=params) as resp:
+                    resp_dict = await resp.json()
+                    maps = resp_dict['maps']
+                    self.available_maps = maps
+        except Exception as e:
+            log.error(e)
+            self.available_maps = []
 
     def load_map(self, init_data):
         height = init_data['height']
@@ -206,8 +244,9 @@ class SnakeHandler:
         log.debug('starting stream')
         self.pixel_changes_buf.clear()
         self.pending_changes = 0
+        await self.fetch_available_maps()
         try:
-            uri = f"{self.stream_host}:{self.stream_port}/ws"
+            uri = f"{self.stream_protocol}://{self.remote_host_name}:{self.stream_port}/ws"
             log.debug(f'connecting to {uri}')
             self.websocket = await websockets.connect(uri)
             log.debug('connected to stream')
@@ -607,6 +646,8 @@ if __name__ == '__main__':
     msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
     msg_handler.add_handlers('food', snake_handler.set_food_count, snake_handler.get_food_count)
     msg_handler.add_handlers('snakes_fps', snake_handler.set_fps, snake_handler.get_fps)
+    msg_handler.add_handlers('snake_map', setter=snake_handler.set_map)
+    msg_handler.add_handlers('snake_maps', getter=snake_handler.get_maps)
     msg_handler.add_handlers('restart_snakes', setter=snake_handler.restart)
 
 

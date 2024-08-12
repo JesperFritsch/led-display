@@ -3,3 +3,4 @@ fastapi
 websockets
 uvicorn
 firebase_admin
+aiohttp
