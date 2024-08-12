@@ -178,7 +178,6 @@ class SnakeHandler:
                         await self.websocket.send(f'GET {request_size}')
                 except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedOK):
                     log.debug('Connection closed')
-                    return None
         log.debug(f'Changes buffer len: {changes_buf_len}, pending changes: {self.pending_changes}')
         if changes_buf_len > 0:
             change = self.pixel_changes_buf.popleft()
@@ -253,6 +252,7 @@ class SnakeHandler:
         finally:
             if self.websocket is not None:
                 await self.websocket.close()
+            self.websocket = None
             self.stream_done = True
 
     async def restart(self, value):
