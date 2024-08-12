@@ -4,3 +4,4 @@ snakes_test/runs/
 **/images
 *.data
 *.png
+display_venv/
