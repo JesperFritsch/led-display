@@ -647,7 +647,7 @@ if __name__ == '__main__':
     msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
     msg_handler.add_handlers('food', snake_handler.set_food_count, snake_handler.get_food_count)
     msg_handler.add_handlers('snakes_fps', snake_handler.set_fps, snake_handler.get_fps)
-    msg_handler.add_handlers('snake_map', setter=snake_handler.set_map)
+    msg_handler.add_handlers('snake_map', snake_handler.set_map, snake_handler.get_map)
     msg_handler.add_handlers('snake_maps', getter=snake_handler.get_maps)
     msg_handler.add_handlers('restart_snakes', setter=snake_handler.restart)
 

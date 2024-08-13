@@ -26,6 +26,7 @@ const screenParams = reactive({
     food: null,
     snakes_fps: null,
     snake_maps: [],
+    snake_map: null,
 })
 
 const inputField = defineComponent({
@@ -213,7 +214,6 @@ const dropdown = defineComponent({
         const selectedItem = ref('--map--');
         function onClick(e){
             selectedItem.value = e.target.innerText;
-            console.log(selectedItem.value);
             screenManager.set(props.param, selectedItem.value);
         }
         watch(() => screenParams[props.param], (newVal, oldVal) => {
