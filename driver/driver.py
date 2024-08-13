@@ -165,7 +165,7 @@ class SnakeHandler:
         try:
             async with aiohttp.ClientSession() as session:
                 params = {'conf': 'maps'}
-                async with session.get(f'https://{self.remote_host_name}:{self.stream_port}/api/config_data', params=params) as resp:
+                async with session.get(f'http://{self.remote_host_name}:{self.stream_port}/api/config_data', params=params) as resp:
                     resp_dict = await resp.json()
                     maps = resp_dict['maps']
                     self.available_maps = maps
@@ -577,6 +577,7 @@ def get_unfetched_images(available_images, image_handler):
 
 async def main():
     global listener
+    await snake_handler.fetch_available_maps()
     new_image_queue = asyncio.Queue()
     loop = asyncio.get_running_loop()
     ref = db.reference('/led_display/')

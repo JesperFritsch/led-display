@@ -11,12 +11,12 @@ import {
     onMounted } from 'vue';
 
 const screenManager = new ScreenManager();
-// const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
-const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
+const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
+// const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
     display_on: true,
-    brightness: 0,
+    brightness: null,
     display_dur: null,
     images: [],
     display_mode: null,
@@ -24,7 +24,8 @@ const screenParams = reactive({
     run_snakes: false,
     nr_snakes: null,
     food: null,
-    snakes_fps: null
+    snakes_fps: null,
+    snake_maps: [],
 })
 
 const inputField = defineComponent({

@@ -142,5 +142,16 @@
         </div>
     </script>
 
+    <script type="text/x-template" id="dropdown-template">
+        <div class="btn-group">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="defaultDropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
+              {{selectedItem}}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
+              <li v-for="item of items"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
+            </ul>
+          </div>
+    </script>
+
     <script src="/static/js/main.js" type="module"></script>
 </html>
