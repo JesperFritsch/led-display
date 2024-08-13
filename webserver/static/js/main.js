@@ -17,14 +17,14 @@ const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 const screenParams = reactive({
     display_on: true,
     brightness: 0,
-    display_dur: 20,
+    display_dur: null,
     images: [],
     display_mode: null,
     display_modes: [],
     run_snakes: false,
-    nr_snakes: 7,
-    food: 15,
-    snakes_fps: 10
+    nr_snakes: null,
+    food: null,
+    snakes_fps: null
 })
 
 const inputField = defineComponent({
@@ -126,6 +126,9 @@ const toggleButton = defineComponent({
             toggled.value = !toggled.value;
             screenManager.set(props.param, toggled.value);
         }
+        watch(() => screenParams[props.param], (newVal, oldVal) => {
+            toggled.value = newVal;
+        })
         return {
             toggle,
             toggled
