@@ -15,13 +15,12 @@ const screenManager = new ScreenManager();
 const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
 
 const screenParams = reactive({
-    display_on: true,
+    display_on: null,
     brightness: null,
     display_dur: null,
     images: [],
     display_mode: null,
     display_modes: [],
-    run_snakes: false,
     nr_snakes: null,
     food: null,
     snakes_fps: null,
@@ -123,12 +122,13 @@ const toggleButton = defineComponent({
         param: String
     },
     setup(props){
-        const toggled = ref(false);
+        const toggled = ref(null);
         function toggle(){
             toggled.value = !toggled.value;
             screenManager.set(props.param, toggled.value);
         }
         watch(() => screenParams[props.param], (newVal, oldVal) => {
+            console.log('dsrgserg')
             toggled.value = newVal;
         })
         return {
