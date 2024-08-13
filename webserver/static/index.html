@@ -37,6 +37,7 @@
                 <input-field label='Nr of snakes' param='nr_snakes' />
                 <input-field label='Food count' param='food' />
                 <input-field label='Snakes FPS' param='snakes_fps' />
+                <dropdown-list param='snake_map' :options="screenParams.snake_maps" />
                 <cmd-btn label='Restart snakes' cmd='restart_snakes' />
             </div>
             <div class="tab-pane fade" id="nav-images" role="tabpanel" aria-labelledby="nav-profile-tab">
@@ -148,7 +149,7 @@
               {{selectedItem}}
             </button>
             <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
-              <li v-for="item of items"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
+              <li v-for="item of options"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
             </ul>
           </div>
     </script>

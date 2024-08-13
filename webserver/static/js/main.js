@@ -201,6 +201,31 @@ const radioGroup = defineComponent({
     }
 });
 
+
+const dropdown = defineComponent({
+    template: '#dropdown-template',
+    props: {
+        label: String,
+        options: Array,
+        param: String
+    },
+    setup(props){
+        const selectedItem = ref('--map--');
+        function onClick(e){
+            selectedItem.value = e.target.innerText;
+            console.log(selectedItem.value);
+            screenManager.set(props.param, selectedItem.value);
+        }
+        watch(() => screenParams[props.param], (newVal, oldVal) => {
+            selectedItem.value = newVal;
+        })
+        return {
+            selectedItem,
+            onClick
+        }
+    }
+});
+
 const app = defineComponent({
     template: '#app-template',
     components: {
@@ -211,7 +236,8 @@ const app = defineComponent({
         'toggle-btn': toggleButton,
         'radio-btn': radioButton,
         'radio-group': radioGroup,
-        'input-range': inputRange
+        'input-range': inputRange,
+        'dropdown-list': dropdown
     },
     setup(){
         return {screenParams}
