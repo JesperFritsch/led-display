@@ -211,7 +211,7 @@ const dropdown = defineComponent({
         param: String
     },
     setup(props){
-        const selectedItem = ref('--map--');
+        const selectedItem = ref('Default map');
         function onClick(e){
             selectedItem.value = e.target.innerText;
             screenManager.set(props.param, selectedItem.value);

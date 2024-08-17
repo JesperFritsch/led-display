@@ -149,7 +149,8 @@
               {{selectedItem}}
             </button>
             <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
-              <li v-for="item of options"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
+                <li><a class="dropdown-item" @click.prevent="onClick">Default map</a></li>
+                <li v-for="item of options"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
             </ul>
           </div>
     </script>
