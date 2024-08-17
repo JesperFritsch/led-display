@@ -181,7 +181,6 @@ class SnakeHandler:
         color_map = init_data['color_mapping']
         r, g, b = color_map[str(blocked_value)]
         neighbors = ((0, 1), (1, 0), (0, -1), (-1, 0))
-        already_set = [False] * height * width
         for y, row in enumerate(base_map):
             e_y = y * 2
             for x, pixel in enumerate(row):
@@ -192,7 +191,6 @@ class SnakeHandler:
                     try:
                         for dx, dy in neighbors:
                             if base_map[y + dy][x + dx] == blocked_value:
-                                already_set[(y + dy) * width + x + dx] = True
                                 display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
                     except Exception as e:
                         log.error(e)
