@@ -273,7 +273,8 @@ class SnakeHandler:
             log.error(e)
             return
         config = {
-            "calc_timeout": 2500,
+            "calc_timeout": self.calc_timeout,
+            "food_decay": self.food_decay,
             "grid_width": 32,
             "grid_height": 32,
             "food_count": self.food_count,
