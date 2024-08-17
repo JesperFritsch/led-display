@@ -191,7 +191,7 @@ class SnakeHandler:
                     #fill in the gaps
                     try:
                         for dx, dy in neighbors:
-                            if base_map[y + dy][x + dx] == blocked_value and not already_set[(y + dy) * width + x + dx]:
+                            if base_map[y + dy][x + dx] == blocked_value:
                                 already_set[(y + dy) * width + x + dx] = True
                                 display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
                     except Exception as e:

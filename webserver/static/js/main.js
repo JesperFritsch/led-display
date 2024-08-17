@@ -128,7 +128,6 @@ const toggleButton = defineComponent({
             screenManager.set(props.param, toggled.value);
         }
         watch(() => screenParams[props.param], (newVal, oldVal) => {
-            console.log('dsrgserg')
             toggled.value = newVal;
         })
         return {
