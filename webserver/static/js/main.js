@@ -23,6 +23,8 @@ const screenParams = reactive({
     display_modes: [],
     nr_snakes: null,
     food: null,
+    food_decay: null,
+    calc_timeout: null,
     snakes_fps: null,
     snake_maps: [],
     snake_map: null,

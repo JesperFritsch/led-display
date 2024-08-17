@@ -133,6 +133,8 @@ class SnakeHandler:
     def __init__(self) -> None:
         self.nr_snakes = 7
         self.food_count = 15
+        self.calc_timeout = 2500
+        self.food_decay = 300
         self.snakes = []
         self.fps = 10
         self.map = None
@@ -154,6 +156,24 @@ class SnakeHandler:
             self.map = value
         except Exception as e:
             log.error(e)
+
+    async def set_food_decay(self, value):
+        try:
+            self.food_decay = int(value)
+        except Exception as e:
+            log.error(e)
+        
+    def get_food_decay(self):
+        return self.food_decay
+    
+    async def set_calc_timeout(self, value):
+        try:
+            self.calc_timeout = int(value)
+        except Exception as e:
+            log.error(e)
+
+    def get_calc_timeout(self):
+        return self.calc_timeout
 
     def get_map(self):
         return self.map
@@ -648,6 +668,8 @@ if __name__ == '__main__':
     msg_handler.add_handlers('snake_map', snake_handler.set_map, snake_handler.get_map)
     msg_handler.add_handlers('snake_maps', getter=snake_handler.get_maps)
     msg_handler.add_handlers('restart_snakes', setter=snake_handler.restart)
+    msg_handler.add_handlers('calc_timeout', snake_handler.set_calc_timeout, snake_handler.get_calc_timeout)
+    msg_handler.add_handlers('food_decay', snake_handler.set_food_decay, snake_handler.get_food_decay)
 
 
     listener = None
