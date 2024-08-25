@@ -23,6 +23,8 @@ const screenParams = reactive({
     display_modes: [],
     nr_snakes: null,
     food: null,
+    food_decay: null,
+    calc_timeout: null,
     snakes_fps: null,
     snake_maps: [],
     snake_map: null,
@@ -128,7 +130,6 @@ const toggleButton = defineComponent({
             screenManager.set(props.param, toggled.value);
         }
         watch(() => screenParams[props.param], (newVal, oldVal) => {
-            console.log('dsrgserg')
             toggled.value = newVal;
         })
         return {
@@ -211,7 +212,7 @@ const dropdown = defineComponent({
         param: String
     },
     setup(props){
-        const selectedItem = ref('--map--');
+        const selectedItem = ref('Default map');
         function onClick(e){
             selectedItem.value = e.target.innerText;
             screenManager.set(props.param, selectedItem.value);

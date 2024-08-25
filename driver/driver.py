@@ -133,7 +133,8 @@ class SnakeHandler:
     def __init__(self) -> None:
         self.nr_snakes = 7
         self.food_count = 15
-        self.food_decay = 0
+        self.calc_timeout = 2500
+        self.food_decay = 300
         self.snakes = []
         self.fps = 10
         self.map = None
@@ -155,6 +156,24 @@ class SnakeHandler:
             self.map = value
         except Exception as e:
             log.error(e)
+
+    async def set_food_decay(self, value):
+        try:
+            self.food_decay = int(value)
+        except Exception as e:
+            log.error(e)
+
+    def get_food_decay(self):
+        return self.food_decay
+
+    async def set_calc_timeout(self, value):
+        try:
+            self.calc_timeout = int(value)
+        except Exception as e:
+            log.error(e)
+
+    def get_calc_timeout(self):
+        return self.calc_timeout
 
     def get_map(self):
         return self.map
@@ -182,21 +201,19 @@ class SnakeHandler:
         color_map = init_data['color_mapping']
         r, g, b = color_map[str(blocked_value)]
         neighbors = ((0, 1), (1, 0), (0, -1), (-1, 0))
-        already_set = [False] * height * width
-        try:
-            for y, row in enumerate(base_map):
-                e_y = y * 2
-                for x, pixel in enumerate(row):
-                    e_x = x * 2
-                    if pixel == blocked_value:
-                        display_handler.matrix.SetPixel(e_x, e_y, r, g, b)
-                        #fill in the gaps
+        for y, row in enumerate(base_map):
+            e_y = y * 2
+            for x, pixel in enumerate(row):
+                e_x = x * 2
+                if pixel == blocked_value:
+                    display_handler.matrix.SetPixel(e_x, e_y, r, g, b)
+                    #fill in the gaps
+                    try:
                         for dx, dy in neighbors:
-                            if base_map[y + dy][x + dx] == blocked_value and not already_set[(y + dy) * width + x + dx]:
-                                already_set[(y + dy) * width + x + dx] = True
+                            if base_map[y + dy][x + dx] == blocked_value:
                                 display_handler.matrix.SetPixel(e_x + dx, e_y + dy, r, g, b)
-        except Exception as e:
-            log.error(e)
+                    except Exception as e:
+                        log.error(e)
 
     async def get_next_change(self):
         change = None
@@ -256,7 +273,8 @@ class SnakeHandler:
             log.error(e)
             return
         config = {
-            "calc_timeout": 2500,
+            "calc_timeout": self.calc_timeout,
+            "food_decay": self.food_decay,
             "grid_width": 32,
             "grid_height": 32,
             "food_count": self.food_count,
@@ -662,6 +680,8 @@ if __name__ == '__main__':
     msg_handler.add_handlers('snake_map', snake_handler.set_map, snake_handler.get_map)
     msg_handler.add_handlers('snake_maps', getter=snake_handler.get_maps)
     msg_handler.add_handlers('restart_snakes', setter=snake_handler.restart)
+    msg_handler.add_handlers('calc_timeout', snake_handler.set_calc_timeout, snake_handler.get_calc_timeout)
+    msg_handler.add_handlers('food_decay', snake_handler.set_food_decay, snake_handler.get_food_decay)
 
 
     listener = None

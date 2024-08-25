@@ -37,6 +37,8 @@
                 <input-field label='Nr of snakes' param='nr_snakes' />
                 <input-field label='Food count' param='food' />
                 <input-field label='Snakes FPS' param='snakes_fps' />
+                <input-field label='Food decay' param='food_decay' />
+                <input-field label='Calculation TimeOut' param='calc_timeout' />
                 <dropdown-list param='snake_map' :options="screenParams.snake_maps" />
                 <cmd-btn label='Restart snakes' cmd='restart_snakes' />
             </div>
@@ -149,7 +151,8 @@
               {{selectedItem}}
             </button>
             <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
-              <li v-for="item of options"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
+                <li><a class="dropdown-item" @click.prevent="onClick">Default map</a></li>
+                <li v-for="item of options"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
             </ul>
           </div>
     </script>
