@@ -133,6 +133,7 @@ class SnakeHandler:
     def __init__(self) -> None:
         self.nr_snakes = 7
         self.food_count = 15
+        self.food_decay = 0
         self.snakes = []
         self.fps = 10
         self.map = None
@@ -259,6 +260,7 @@ class SnakeHandler:
             "grid_width": 32,
             "grid_height": 32,
             "food_count": self.food_count,
+            "food_decay": self.food_decay,
             "nr_of_snakes": self.nr_snakes,
             "data_mode": "pixel_data",
             "data_on_demand": True,
@@ -324,6 +326,15 @@ class SnakeHandler:
 
     def get_food_count(self):
         return self.food_count
+
+    async def set_food_decay(self, value):
+        try:
+            self.food_decay = int(value)
+        except Exception as e:
+            log.error(e)
+
+    def get_food_decay(self):
+        return self.food_decay
 
 
 class SocketHandler:
@@ -646,6 +657,7 @@ if __name__ == '__main__':
     msg_handler.add_handlers('images', getter=image_handler.get_image_names)
     msg_handler.add_handlers('nr_snakes', snake_handler.set_nr_snakes, snake_handler.get_nr_snakes)
     msg_handler.add_handlers('food', snake_handler.set_food_count, snake_handler.get_food_count)
+    msg_handler.add_handlers('food_decay', snake_handler.set_food_decay, snake_handler.get_food_decay)
     msg_handler.add_handlers('snakes_fps', snake_handler.set_fps, snake_handler.get_fps)
     msg_handler.add_handlers('snake_map', snake_handler.set_map, snake_handler.get_map)
     msg_handler.add_handlers('snake_maps', getter=snake_handler.get_maps)
