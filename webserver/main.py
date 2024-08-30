@@ -167,8 +167,6 @@ async def websocket_endpoint(websocket: WebSocket):
             for connection in active_websockets:
                 #only echo the 'set' part of the message to all of the other clients
                 await connection.send_json(payload.get('set'))
-    except WebSocketDisconnect:
-        active_websockets.remove(websocket)
     except:
-        pass
+        active_websockets.remove(websocket)
 
