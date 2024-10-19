@@ -21,11 +21,17 @@ export class CommHandler{
             this.sendData({get: {all: null}});
         }
     }
+    is_connected(){
+        return this.connection.readyState === WebSocket.OPEN;
+    }
     receiveData(event){
         Object.assign(screenParams, JSON.parse(event.data));
         console.log(event.data);
     }
     sendData(data){
+        if (!this.is_connected()){
+            this.connect();
+        }
         this.connection.send(JSON.stringify(data))
     }
 }
