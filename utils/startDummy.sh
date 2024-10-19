@@ -1,4 +1,5 @@
 #!/bin/bash
-export PATH=/home/pi/led-display/driver:$PATH
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+export PATH=$SCRIPT_DIR:$PATH
 umask 000
-python3 /home/pi/led-display/utils/socket_dummy.py
+python3 $SCRIPT_DIR/driver_dummy.py -i $SCRIPT_DIR/../webserver/images

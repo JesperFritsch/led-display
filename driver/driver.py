@@ -31,7 +31,7 @@ log.addHandler(log_handler)
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import common_config as c_cfg
 from config import driver_config as d_cfg
-
+from driver.msg_interface import MsgHandler
 cred = credentials.Certificate(os.path.join(os.path.dirname(os.path.dirname(__file__)),"pixelart-dcaff-eefc1ed77b07.json"))
 
 DEFAULT_STORE_LOCATION = os.path.join(os.getcwd(), 'downloaded_images.data')
@@ -42,77 +42,6 @@ app_config = {
 }
 
 app = firebase_admin.initialize_app(cred, app_config)
-
-class DotDict(dict):
-    def __getattr__(self, attr):
-        try:
-            return self[attr]
-        except KeyError:
-            raise AttributeError()
-
-    def __setattr__(self, attr, value):
-        self[attr] = value
-
-    def __delattr__(self, attr):
-        try:
-            del self[attr]
-        except KeyError:
-            raise AttributeError
-
-    def read_dict(self, other_dict):
-        for k, v in other_dict.items():
-            if isinstance(v, dict):
-                v = DotDict(v)
-            self[k] = v
-
-
-class MsgHandler:
-    def __init__(self) -> None:
-        self.set_handlers = DotDict()
-        self.get_handlers = DotDict()
-
-    def add_handlers(self, message_key, setter=None, getter=None):
-        if setter is not None: self.set_handlers[message_key] = setter
-        if getter is not None: self.get_handlers[message_key] = getter
-
-    async def send_update(self, *msg_keys):
-        message = {key: self.get_handlers[key]() for key in msg_keys}
-        for key in msg_keys:
-            try:
-                val = self.get_handlers[key]()
-            except KeyError:
-                val = None
-                log.debug(f'Invalid message: "{key}"')
-            message[key] = val
-        await socket_handler.send_message(message)
-
-    async def handle_msg(self, payload):
-        tasks = []
-        message = None
-        for meth_type, msgs in payload.items():
-            if meth_type == 'set':
-                for key, value in msgs.items():
-                    try:
-                        tasks.append(asyncio.create_task(self.set_handlers[key](value)))
-                    except KeyError:
-                        log.debug(f'Invalid message: "{key}"')
-                await asyncio.gather(*tasks)
-            elif meth_type == 'get':
-                if 'all' in msgs.keys():
-                    message = {key: getter() for key, getter in self.get_handlers.items()}
-                else:
-                    message = {}
-                    for get_key, val in msgs.items():
-                        try:
-                            get_value = self.get_handlers[get_key](val)
-                        except TypeError:
-                            get_value = self.get_handlers[get_key]()
-                        except KeyError:
-                            get_value = None
-                            log.debug(f'Invalid message: "{key}"')
-                    message[get_key] = get_value
-        return message
-
 
 class StoreFileHander:
     def __init__(self, filepath) -> None:
@@ -355,61 +284,6 @@ class SnakeHandler:
         return self.food_decay
 
 
-class SocketHandler:
-    def __init__(self, sock_file) -> None:
-        self.sock_file = sock_file
-        self.connections = set()
-
-    async def send_message(self, msg_dict):
-        payload = json.dumps(msg_dict) + '\n'
-        data = payload.encode('utf8')
-        for r, w in self.connections:
-            w.write(data)
-
-    async def run_loop(self):
-        while True:
-            try:
-                log.debug(f"Trying to connect to socket: '{self.sock_file}'")
-                reader, writer = await asyncio.open_unix_connection(self.sock_file)
-                self.connections.add((reader, writer))
-                log.debug(f"Connected to socket: {self.sock_file}")
-            except ConnectionRefusedError as e:
-                log.error(f"Socket not available: {e}")
-                await asyncio.sleep(20)
-            except Exception as e:
-                log.error(f"Error connecting: {e}")
-                await asyncio.sleep(10)
-            else:
-                try:
-                    while True:
-                        data = await reader.readline()
-                        if data:
-                            try:
-                                msg = json.loads(data)
-                                log.debug(msg)
-                                response = await msg_handler.handle_msg(msg)
-                                if response is not None:
-                                    data_json = json.dumps(response) + '\n'
-                                    data = data_json.encode('utf-8')
-                                    writer.write(data)
-                                    await writer.drain()
-                            except Exception as e:
-                                log.error('Some shit happened: ', e)
-                                log.debug(response)
-                        else:
-                            log.debug('Connection closed')
-                            break
-
-                except asyncio.CancelledError as e:
-                    log.error("Cancelled error")
-                    log.error("TRACE", exc_info=True)
-
-                finally:
-                    writer.close()
-                    await writer.wait_closed()
-                    self.connections.remove((reader, writer))
-
-
 class DisplayHandler:
     def __init__(self) -> None:
         self.sleep_dur_ms = 50
@@ -613,7 +487,7 @@ async def main():
     slideshow_ref = ref.child("img_slideshow")
     available_images = list(slideshow_ref.get().values())
     get_unfetched_images(available_images, image_handler)
-    socket_loop_task = asyncio.create_task(socket_handler.run_loop())
+    socket_loop_task = asyncio.create_task(msg_handler.socket_handler.run_loop())
     display_loop_task = asyncio.create_task(display_handler.run_loop())
     scan_dir_task = asyncio.create_task(image_handler.scan_dir())
     handleNewImage_task = asyncio.create_task(handleNewImage(new_image_queue))
@@ -662,7 +536,6 @@ if __name__ == '__main__':
     display_handler.init_matrix()
     image_handler = ImageHandler(args.image_dir, display_handler.matrix.width, display_handler.matrix.height)
     snake_handler = SnakeHandler()
-    socket_handler = SocketHandler(c_cfg.SOCKET_FILE)
     store = StoreFileHander(DEFAULT_STORE_LOCATION)
 
     msg_handler.add_handlers('brightness', display_handler.set_brightness, display_handler.get_brightness)
