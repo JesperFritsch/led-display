@@ -34,7 +34,7 @@ sys.path.append(p)
 
 from config import common_config as c_cfg
 from config import driver_config as d_cfg
-from driver.msg_interface import MsgHandler
+from msg_interface import MsgHandler
 cred = credentials.Certificate(os.path.join(os.path.dirname(os.path.dirname(__file__)),"pixelart-dcaff-eefc1ed77b07.json"))
 
 DEFAULT_STORE_LOCATION = os.path.join(os.getcwd(), 'downloaded_images.data')
