@@ -7,15 +7,13 @@ from fastapi import FastAPI
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import Response
-from fastapi.responses import HTMLResponse
-from fastapi.responses import FileResponse
+from fastapi.responses import Response, HTMLResponse, FileResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from starlette.types import Scope
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from config import common_config
+from config import common_config, server_config
 
 class NoCacheStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope: Scope) -> Response:
@@ -115,6 +113,7 @@ socket_server_task = None
 
 driver_image_dir = None
 
+
 @app.on_event('startup')
 async def start_app():
     global socket_server_task
@@ -131,6 +130,13 @@ async def shutdown_app():
             print("Socket server task cancelled.")
         finally:
             await socket_server.stop()
+
+@app.get("/config.json")
+async def get_config():
+    if os.getenv('ENV') == 'prod':
+        return server_config.prod_config
+    elif os.getenv('ENV') == 'dev':
+        return server_config.dev_config
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
@@ -167,6 +173,8 @@ async def websocket_endpoint(websocket: WebSocket):
             for connection in active_websockets:
                 #only echo the 'set' part of the message to all of the other clients
                 await connection.send_json(payload.get('set'))
-    except:
+    except Exception as e:
+        print("Websocket error: ", e)
+    finally:
         active_websockets.remove(websocket)
 

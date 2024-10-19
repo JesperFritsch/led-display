@@ -11,6 +11,10 @@ export class ScreenManager{
         const payload = {
             set: data
         }
+        if(commHandler === undefined){
+            console.log("commHandler is not initialized yet");
+            return;
+        }
         commHandler.sendData(payload);
     }
     get(name, value){
@@ -19,6 +23,10 @@ export class ScreenManager{
         data[name] = value;
         const payload = {
             get: data
+        }
+        if(commHandler === undefined){
+            console.log("commHandler is not initialized yet");
+            return;
         }
         commHandler.sendData(payload);
     }

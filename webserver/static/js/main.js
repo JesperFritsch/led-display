@@ -11,8 +11,14 @@ import {
     onMounted } from 'vue';
 
 const screenManager = new ScreenManager();
-// const commHandler = new CommHandler({wsUrl: "ws://localhost:8080/ws"})
-const commHandler = new CommHandler({wsUrl: "ws://raspberrypi:8080/ws"})
+let commHandler;
+
+fetch("/config.json")
+.then(response => response.json())
+.then(data => {
+    const wsUrl = "ws://" + data.wsHost + ":" + data.wsPort + "/ws";
+    commHandler = new CommHandler({wsUrl: wsUrl})
+})
 
 const screenParams = reactive({
     display_on: null,
@@ -66,7 +72,6 @@ const inputRange = defineComponent({
     setup(props){
         const rangeValue = ref(props.modelValue || 0);
         function onChange(){
-            console.log(rangeValue.value);
             screenManager.set(props.param, rangeValue.value);
         }
         watch(() => screenParams[props.param], (newVal, oldVal) => {

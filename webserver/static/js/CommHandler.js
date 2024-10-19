@@ -15,6 +15,7 @@ export class CommHandler{
         Object.assign(this, params);
     }
     connect(){
+        console.log(`Connecting to :'${this.wsUrl}'`);
         this.connection = new WebSocket(this.wsUrl);
         this.connection.onmessage = this.receiveData.bind(this);
         this.connection.onopen = () => {
