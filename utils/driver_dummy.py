@@ -16,7 +16,9 @@ log = logging.getLogger(Path(__file__).stem)
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger().setLevel(logging.DEBUG)
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+p = os.path.dirname(os.path.dirname(__file__))
+print(f"Adding path: {p}")
+sys.path.append(p)
 from config import common_config as c_cfg
 from config import driver_config as d_cfg
 from driver.msg_interface import MsgHandler
