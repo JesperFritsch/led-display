@@ -211,7 +211,7 @@ class SnakeHandler:
             "grid_height": 32,
             "food_count": self.food_count,
             "food_decay": self.food_decay,
-            "nr_of_snakes": self.nr_snakes,
+            "snake_count": self.nr_snakes,
             "data_mode": "pixel_data",
             "data_on_demand": True,
             "map": self.map
