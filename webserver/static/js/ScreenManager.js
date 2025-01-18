@@ -30,4 +30,16 @@ export class ScreenManager{
         }
         commHandler.sendData(payload);
     }
+    action(name){
+        const data = {};
+        data[name] = true;
+        const payload = {
+            action: data
+        }
+        if(commHandler === undefined){
+            console.log("commHandler is not initialized yet");
+            return;
+        }
+        commHandler.sendData(payload);
+    }
 }

@@ -25,8 +25,8 @@ const screenParams = reactive({
     brightness: null,
     display_dur: null,
     images: [],
-    display_mode: null,
-    display_modes: [],
+    app: null,
+    apps: [],
     nr_snakes: null,
     food: null,
     food_decay: null,
@@ -114,7 +114,7 @@ const cmdButton = defineComponent({
     },
     setup(props){
         function onClick(){
-            screenManager.set(props.cmd, true);
+            screenManager.action(props.cmd);
         }
         return {
             onClick
@@ -217,7 +217,7 @@ const dropdown = defineComponent({
         param: String
     },
     setup(props){
-        const selectedItem = ref('Default map');
+        const selectedItem = ref('none');
         function onClick(e){
             selectedItem.value = e.target.innerText;
             screenManager.set(props.param, selectedItem.value);

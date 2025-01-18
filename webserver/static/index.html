@@ -24,12 +24,12 @@
         </div>
         <div id="mode-options">
             <p>Mode options</p>
-            <radio-group :options="screenParams.display_modes" groupName="display_mode" />
+            <radio-group :options="screenParams.apps" groupName="app" />
         </div>
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
               <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-snakes" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Snakes</button>
-              <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-images" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Images</button>
+              <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-images" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Pixelart</button>
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
@@ -151,7 +151,7 @@
               {{selectedItem}}
             </button>
             <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
-                <li><a class="dropdown-item" @click.prevent="onClick">Default map</a></li>
+                <li><a class="dropdown-item" @click.prevent="onClick">none</a></li>
                 <li v-for="item of options"><a class="dropdown-item" @click.prevent="onClick">{{item}}</a></li>
             </ul>
           </div>
