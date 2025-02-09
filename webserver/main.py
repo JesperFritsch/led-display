@@ -34,7 +34,7 @@ app = FastAPI()
 app.mount("/static", NoCacheStaticFiles(directory='static'), name='static')
 active_websockets = set()
 
-ctl_client = ConnClient(host="localhost")
+ctl_client = ConnClient(host=server_config.prod_config['connHost'])
 
 def update_handler(update: Dict[str, Any], active_websockets):
     async def send_to_all():
