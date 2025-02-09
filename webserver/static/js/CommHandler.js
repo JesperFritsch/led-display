@@ -27,6 +27,7 @@ export class CommHandler{
     }
     receiveData(event){
         Object.assign(screenParams, JSON.parse(event.data));
+        console.log(screenParams);
         console.log(event.data);
     }
     sendData(data){

@@ -17,10 +17,9 @@ export class ScreenManager{
         }
         commHandler.sendData(payload);
     }
-    get(name, value){
+    get(name){
         //Value here is not used yet, but could be useful?
-        const data = {};
-        data[name] = value;
+        const data = [name];
         const payload = {
             get: data
         }
@@ -31,8 +30,7 @@ export class ScreenManager{
         commHandler.sendData(payload);
     }
     action(name){
-        const data = {};
-        data[name] = true;
+        const data = [name];
         const payload = {
             action: data
         }
