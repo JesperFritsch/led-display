@@ -8,8 +8,8 @@ StartLimitIntervalSec=1
 Type=simple
 Restart=always
 RestartSec=1
-WorkingDirectory=/home/pi/led-display/webserver
-ExecStart=./startScript.sh
+WorkingDirectory=/home/matrix/projects/led-display/webserver
+ExecStart=/home/matrix/projects/led-display/webserver/startScript.sh
 
 [Install]
 WantedBy=multi-user.target

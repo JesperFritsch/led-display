@@ -5,7 +5,7 @@ dev_config = {
 }
 
 prod_config = {
-    "wsHost": "raspberrypi",
+    "wsHost": "matrixpi",
     "wsPort": 8080,
     "connHost": "localhost",
 }
